@@ -1,4 +1,16 @@
+import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+// SEMS API base URL. Both build types use Render by default.
+// To point debug builds to a local backend, add this line to local.properties (not versioned):
+//   sems.api.baseUrl.debug=http://10.0.2.2:8080/api/v1/
+val productionApiBaseUrl = "https://sems-backend-kgnm.onrender.com/api/v1/"
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use(::load)
+}
+val debugApiBaseUrl: String =
+    localProperties.getProperty("sems.api.baseUrl.debug") ?: productionApiBaseUrl
 
 plugins {
     alias(libs.plugins.android.application)
@@ -24,7 +36,11 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField("String", "API_BASE_URL", "\"$debugApiBaseUrl\"")
+        }
         release {
+            buildConfigField("String", "API_BASE_URL", "\"$productionApiBaseUrl\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -38,6 +54,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
