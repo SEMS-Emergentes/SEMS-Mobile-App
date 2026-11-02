@@ -13,7 +13,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import pe.edu.upc.sems.iam.FakeAuthRepository
-import pe.edu.upc.sems.iam.presentation.common.AuthValidation
+import pe.edu.upc.sems.shared.util.SlowNotice
 import pe.edu.upc.sems.iam.presentation.common.FieldError
 import pe.edu.upc.sems.shared.network.ApiError
 import pe.edu.upc.sems.shared.network.ApiResult
@@ -141,7 +141,7 @@ class LoginViewModelTest {
         fill()
         viewModel.onSubmit()
 
-        advanceTimeBy(AuthValidation.SLOW_REQUEST_MS - 1)
+        advanceTimeBy(SlowNotice.THRESHOLD_MS - 1)
         runCurrent()
         assertFalse(viewModel.uiState.value.isSlow)
 

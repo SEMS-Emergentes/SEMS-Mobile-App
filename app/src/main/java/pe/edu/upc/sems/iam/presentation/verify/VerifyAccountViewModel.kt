@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 import pe.edu.upc.sems.iam.domain.model.AuthenticatedAccount
 import pe.edu.upc.sems.iam.domain.repository.AuthRepository
 import pe.edu.upc.sems.iam.presentation.common.FieldError
-import pe.edu.upc.sems.iam.presentation.common.withSlowNotice
+import pe.edu.upc.sems.shared.util.withSlowNotice
 import pe.edu.upc.sems.shared.network.ApiError
 import pe.edu.upc.sems.shared.network.ApiResult
 

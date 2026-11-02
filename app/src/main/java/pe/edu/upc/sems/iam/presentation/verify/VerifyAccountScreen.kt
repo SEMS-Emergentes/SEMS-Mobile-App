@@ -42,8 +42,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import pe.edu.upc.sems.R
-import pe.edu.upc.sems.iam.presentation.common.AuthErrorBanner
-import pe.edu.upc.sems.iam.presentation.common.AuthSubmitButton
+import pe.edu.upc.sems.shared.designsystem.components.ErrorBanner
+import pe.edu.upc.sems.shared.designsystem.components.SubmitButton
 import pe.edu.upc.sems.iam.presentation.common.message
 import pe.edu.upc.sems.shared.designsystem.SemsSpacing
 import pe.edu.upc.sems.shared.designsystem.SemsTheme
@@ -118,17 +118,17 @@ fun VerifyCodeContent(
             state.error?.let { error ->
                 when (error) {
                     VerifyError.INVALID_CODE ->
-                        AuthErrorBanner(R.string.verify_error_invalid_title, R.string.verify_error_invalid_body)
+                        ErrorBanner(R.string.verify_error_invalid_title, R.string.verify_error_invalid_body)
                     VerifyError.NO_CONNECTION ->
-                        AuthErrorBanner(R.string.login_error_no_connection_title, R.string.login_error_no_connection_body)
-                    VerifyError.TIMEOUT -> AuthErrorBanner(
+                        ErrorBanner(R.string.login_error_no_connection_title, R.string.login_error_no_connection_body)
+                    VerifyError.TIMEOUT -> ErrorBanner(
                         title = R.string.login_error_timeout_title,
                         body = R.string.login_error_timeout_body,
                         actionLabel = R.string.action_retry,
                         onAction = submit,
                     )
                     VerifyError.GENERIC ->
-                        AuthErrorBanner(R.string.verify_error_generic_title, R.string.login_error_generic_body)
+                        ErrorBanner(R.string.verify_error_generic_title, R.string.login_error_generic_body)
                 }
                 Spacer(Modifier.height(SemsSpacing.md))
             }
@@ -145,7 +145,7 @@ fun VerifyCodeContent(
                 modifier = Modifier.fillMaxWidth(),
             )
             Spacer(Modifier.height(SemsSpacing.md))
-            AuthSubmitButton(
+            SubmitButton(
                 label = R.string.verify_submit,
                 isLoading = state.isLoading,
                 isSlow = state.isSlow,

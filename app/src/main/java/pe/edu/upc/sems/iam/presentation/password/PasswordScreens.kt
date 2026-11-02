@@ -43,9 +43,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import pe.edu.upc.sems.R
-import pe.edu.upc.sems.iam.presentation.common.AuthErrorBanner
+import pe.edu.upc.sems.shared.designsystem.components.ErrorBanner
 import pe.edu.upc.sems.iam.presentation.common.AuthHeaderIcon
-import pe.edu.upc.sems.iam.presentation.common.AuthSubmitButton
+import pe.edu.upc.sems.shared.designsystem.components.SubmitButton
 import pe.edu.upc.sems.iam.presentation.common.AuthValidation
 import pe.edu.upc.sems.iam.presentation.common.PasswordField
 import pe.edu.upc.sems.iam.presentation.common.message
@@ -106,7 +106,7 @@ fun ForgotPasswordScreen(
                 .semantics { contentType = ContentType.EmailAddress },
         )
         Spacer(Modifier.height(SemsSpacing.md))
-        AuthSubmitButton(
+        SubmitButton(
             label = R.string.forgot_submit,
             isLoading = state.isLoading,
             isSlow = state.isSlow,
@@ -222,7 +222,7 @@ fun ResetPasswordScreen(
         navigationIcon = R.drawable.ic_arrow_back,
         onNavigation = onBack,
         bottom = {
-            AuthSubmitButton(
+            SubmitButton(
                 label = R.string.reset_submit,
                 isLoading = state.isLoading,
                 isSlow = state.isSlow,
@@ -398,17 +398,17 @@ private fun InfoCard(@DrawableRes icon: Int, text: String) {
 private fun PasswordErrorBanner(error: PasswordError, onRetry: () -> Unit) {
     when (error) {
         PasswordError.INVALID_LINK ->
-            AuthErrorBanner(R.string.reset_error_invalid_link_title, R.string.reset_error_invalid_link_body)
+            ErrorBanner(R.string.reset_error_invalid_link_title, R.string.reset_error_invalid_link_body)
         PasswordError.NO_CONNECTION ->
-            AuthErrorBanner(R.string.login_error_no_connection_title, R.string.login_error_no_connection_body)
-        PasswordError.TIMEOUT -> AuthErrorBanner(
+            ErrorBanner(R.string.login_error_no_connection_title, R.string.login_error_no_connection_body)
+        PasswordError.TIMEOUT -> ErrorBanner(
             title = R.string.login_error_timeout_title,
             body = R.string.login_error_timeout_body,
             actionLabel = R.string.action_retry,
             onAction = onRetry,
         )
         PasswordError.GENERIC ->
-            AuthErrorBanner(R.string.password_error_generic_title, R.string.login_error_generic_body)
+            ErrorBanner(R.string.password_error_generic_title, R.string.login_error_generic_body)
     }
 }
 

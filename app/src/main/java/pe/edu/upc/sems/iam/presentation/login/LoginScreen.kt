@@ -40,8 +40,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import pe.edu.upc.sems.BuildConfig
 import pe.edu.upc.sems.R
-import pe.edu.upc.sems.iam.presentation.common.AuthErrorBanner
-import pe.edu.upc.sems.iam.presentation.common.AuthSubmitButton
+import pe.edu.upc.sems.shared.designsystem.components.ErrorBanner
+import pe.edu.upc.sems.shared.designsystem.components.SubmitButton
 import pe.edu.upc.sems.iam.presentation.common.PasswordField
 import pe.edu.upc.sems.iam.presentation.common.message
 import pe.edu.upc.sems.shared.designsystem.SemsSpacing
@@ -149,7 +149,7 @@ fun LoginContent(
                     }
                 }
                 Spacer(Modifier.height(SemsSpacing.xs))
-                AuthSubmitButton(
+                SubmitButton(
                     label = R.string.login_submit,
                     isLoading = state.isLoading,
                     isSlow = state.isSlow,
@@ -200,25 +200,25 @@ private fun BrandHeader() {
 private fun LoginErrorBanner(error: LoginError, onRetry: () -> Unit, onVerifyAccount: () -> Unit) {
     when (error) {
         LoginError.INVALID_CREDENTIALS ->
-            AuthErrorBanner(R.string.login_error_credentials_title, R.string.login_error_credentials_body)
+            ErrorBanner(R.string.login_error_credentials_title, R.string.login_error_credentials_body)
         // Fallback flow: only happens if the backend requires email verification.
-        LoginError.NOT_VERIFIED -> AuthErrorBanner(
+        LoginError.NOT_VERIFIED -> ErrorBanner(
             title = R.string.login_error_not_verified_title,
             body = R.string.login_error_not_verified_body,
             actionLabel = R.string.login_enter_code,
             onAction = onVerifyAccount,
         )
         LoginError.NO_CONNECTION ->
-            AuthErrorBanner(R.string.login_error_no_connection_title, R.string.login_error_no_connection_body)
+            ErrorBanner(R.string.login_error_no_connection_title, R.string.login_error_no_connection_body)
         // Render's cold start can exceed the timeout: offer a visible retry.
-        LoginError.TIMEOUT -> AuthErrorBanner(
+        LoginError.TIMEOUT -> ErrorBanner(
             title = R.string.login_error_timeout_title,
             body = R.string.login_error_timeout_body,
             actionLabel = R.string.action_retry,
             onAction = onRetry,
         )
         LoginError.GENERIC ->
-            AuthErrorBanner(R.string.login_error_generic_title, R.string.login_error_generic_body)
+            ErrorBanner(R.string.login_error_generic_title, R.string.login_error_generic_body)
     }
 }
 

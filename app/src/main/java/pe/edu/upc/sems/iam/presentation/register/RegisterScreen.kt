@@ -45,8 +45,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import pe.edu.upc.sems.R
-import pe.edu.upc.sems.iam.presentation.common.AuthErrorBanner
-import pe.edu.upc.sems.iam.presentation.common.AuthSubmitButton
+import pe.edu.upc.sems.shared.designsystem.components.ErrorBanner
+import pe.edu.upc.sems.shared.designsystem.components.SubmitButton
 import pe.edu.upc.sems.iam.presentation.common.PasswordField
 import pe.edu.upc.sems.iam.presentation.common.message
 import pe.edu.upc.sems.shared.designsystem.SemsSpacing
@@ -182,7 +182,7 @@ fun RegisterContent(
                 )
             }
             Spacer(Modifier.height(SemsSpacing.md))
-            AuthSubmitButton(
+            SubmitButton(
                 label = R.string.register_submit,
                 isLoading = state.isLoading,
                 isSlow = state.isSlow,
@@ -244,22 +244,22 @@ private fun TermsCheckbox(
 @Composable
 private fun RegisterErrorBanner(error: RegisterError, onRetry: () -> Unit, onLogin: () -> Unit) {
     when (error) {
-        RegisterError.EMAIL_TAKEN -> AuthErrorBanner(
+        RegisterError.EMAIL_TAKEN -> ErrorBanner(
             title = R.string.register_error_email_taken_title,
             body = R.string.register_error_email_taken_body,
             actionLabel = R.string.register_login,
             onAction = onLogin,
         )
         RegisterError.NO_CONNECTION ->
-            AuthErrorBanner(R.string.login_error_no_connection_title, R.string.login_error_no_connection_body)
-        RegisterError.TIMEOUT -> AuthErrorBanner(
+            ErrorBanner(R.string.login_error_no_connection_title, R.string.login_error_no_connection_body)
+        RegisterError.TIMEOUT -> ErrorBanner(
             title = R.string.login_error_timeout_title,
             body = R.string.login_error_timeout_body,
             actionLabel = R.string.action_retry,
             onAction = onRetry,
         )
         RegisterError.GENERIC ->
-            AuthErrorBanner(R.string.register_error_generic_title, R.string.login_error_generic_body)
+            ErrorBanner(R.string.register_error_generic_title, R.string.login_error_generic_body)
     }
 }
 
