@@ -20,6 +20,7 @@
     <!-- Top app bar -->
     <string name="action_open_menu">Abrir menú</string>
     <string name="action_back">Atrás</string>
+    <string name="action_retry">Reintentar</string>
 
     <!-- Common states -->
     <string name="loading">Cargando…</string>

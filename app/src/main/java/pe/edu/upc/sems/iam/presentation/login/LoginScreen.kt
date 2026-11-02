@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,6 +22,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -116,7 +118,11 @@ fun LoginContent(
                 Spacer(Modifier.height(SemsSpacing.lg))
 
                 state.error?.let { error ->
-                    ErrorBanner(error)
+                    ErrorBanner(
+                        error = error,
+                        // Render's cold start can exceed the timeout: offer a visible retry.
+                        onRetry = if (error == LoginError.TIMEOUT) onSubmit else null,
+                    )
                     Spacer(Modifier.height(SemsSpacing.md))
                 }
 
@@ -236,7 +242,7 @@ private fun BrandHeader() {
 }
 
 @Composable
-private fun ErrorBanner(error: LoginError) {
+private fun ErrorBanner(error: LoginError, onRetry: (() -> Unit)?) {
     val (title, body) = error.texts()
     Surface(
         color = MaterialTheme.colorScheme.errorContainer,
@@ -253,6 +259,15 @@ private fun ErrorBanner(error: LoginError) {
                 Text(stringResource(title), style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.height(SemsSpacing.xxs))
                 Text(stringResource(body), style = MaterialTheme.typography.bodyMedium)
+                if (onRetry != null) {
+                    TextButton(
+                        onClick = onRetry,
+                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onErrorContainer),
+                        contentPadding = PaddingValues(horizontal = 0.dp),
+                    ) {
+                        Text(stringResource(R.string.action_retry))
+                    }
+                }
             }
         }
     }
