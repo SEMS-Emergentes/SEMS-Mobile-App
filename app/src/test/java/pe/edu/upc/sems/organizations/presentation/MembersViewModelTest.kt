@@ -36,7 +36,8 @@ class MembersViewModelTest {
     private val me = FakeOrganizationRepository.MEMBER
     private val luis = me.copy(membershipId = "m-2", userId = "user-2", email = "luis@example.com", role = MembershipRole.SUPERVISOR, siteId = "site-1")
 
-    private fun viewModel() = MembersViewModel(repository, sessionManager).apply { start("org-1") }
+    private fun viewModel(canManage: Boolean = true) =
+        MembersViewModel(repository, sessionManager).apply { start("org-1", canManage) }
 
     @Test
     fun `lists the members and knows who is the signed-in user`() = runTest(mainRule.dispatcher) {
@@ -48,6 +49,22 @@ class MembersViewModelTest {
         assertEquals(listOf("m-1", "m-2"), state.members.map { it.membershipId })
         assertEquals("user-1", state.currentUserId)
         assertEquals(listOf("org-1"), repository.listMembersCalls)
+    }
+
+    @Test
+    fun `supervisors and operators see the members read only`() = runTest(mainRule.dispatcher) {
+        // Backend: GET members needs any active membership; POST and DELETE need ORG_ADMIN.
+        repository.listMembersResult = ApiResult.Success(listOf(me, luis))
+        val viewModel = viewModel(canManage = false)
+        advanceUntilIdle()
+        assertEquals(2, viewModel.uiState.value.members.size)
+
+        viewModel.onGrantClick()
+        viewModel.onRevokeRequest(luis)
+        assertNull(viewModel.uiState.value.grantForm)
+        assertNull(viewModel.uiState.value.confirmingRevoke)
+        assertTrue(repository.grantMemberCalls.isEmpty())
+        assertTrue(repository.revokeMemberCalls.isEmpty())
     }
 
     @Test

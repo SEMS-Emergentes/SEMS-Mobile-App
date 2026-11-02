@@ -47,7 +47,11 @@ import pe.edu.upc.sems.shared.designsystem.components.SubmitButton
 /** Roles offered in "Dar acceso", in the web app's order. */
 private val GRANTABLE_ROLES = listOf(MembershipRole.ORG_ADMIN, MembershipRole.SUPERVISOR, MembershipRole.OPERATOR)
 
-/** "Quién tiene acceso" card, inside "Locales" (web: MembersCard.vue). */
+/**
+ * "Quién tiene acceso" card, inside "Locales" (web: MembersCard.vue). Shown to every member;
+ * "Dar acceso" and "Quitar acceso" only for ORG_ADMIN.
+ * A supervisor only receives their own site, so other members' sites show "—", as in the web app.
+ */
 @Composable
 fun MembersCard(
     state: MembersUiState,
@@ -70,10 +74,12 @@ fun MembersCard(
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.weight(1f),
                 )
-                TextButton(onClick = onGrantClick) {
-                    Icon(painterResource(R.drawable.ic_add), contentDescription = null)
-                    Spacer(Modifier.width(SemsSpacing.xs))
-                    Text(stringResource(R.string.members_grant))
+                if (state.canManage) {
+                    TextButton(onClick = onGrantClick) {
+                        Icon(painterResource(R.drawable.ic_add), contentDescription = null)
+                        Spacer(Modifier.width(SemsSpacing.xs))
+                        Text(stringResource(R.string.members_grant))
+                    }
                 }
             }
             state.revokeError?.let {
@@ -107,6 +113,7 @@ fun MembersCard(
                         member = member,
                         siteName = member.siteId?.let { id -> sites.firstOrNull { it.id == id }?.name },
                         isMe = member.userId == state.currentUserId,
+                        canRevoke = state.canManage,
                         isRevoking = state.revokingId == member.membershipId,
                         onRevoke = { onRevoke(member) },
                     )
@@ -126,7 +133,14 @@ fun MembersCard(
 }
 
 @Composable
-private fun MemberRow(member: Member, siteName: String?, isMe: Boolean, isRevoking: Boolean, onRevoke: () -> Unit) {
+private fun MemberRow(
+    member: Member,
+    siteName: String?,
+    isMe: Boolean,
+    canRevoke: Boolean,
+    isRevoking: Boolean,
+    onRevoke: () -> Unit,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -160,6 +174,8 @@ private fun MemberRow(member: Member, siteName: String?, isMe: Boolean, isRevoki
         }
         when {
             isMe -> InfoChip(stringResource(R.string.members_you), highlighted = true)
+            // Read only for SUPERVISOR and OPERATOR.
+            !canRevoke -> Unit
             isRevoking -> CircularProgressIndicator(Modifier.padding(SemsSpacing.sm).size(24.dp), strokeWidth = 2.dp)
             else -> IconButton(onClick = onRevoke) {
                 Icon(

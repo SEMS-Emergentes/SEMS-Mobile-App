@@ -88,27 +88,23 @@ fun SitesScreen(
         }
         is SitesUiState.Success -> {
             val members by membersViewModel.uiState.collectAsStateWithLifecycle()
-            // Members are managed only by ORG_ADMIN (CLAUDE.md, rule 5; backend: administraOrganizacion).
-            if (current.canManageOrganization) {
-                LaunchedEffect(current.organization.id) { membersViewModel.start(current.organization.id) }
+            // Every member can see who has access; only ORG_ADMIN manages it (backend: administraOrganizacion).
+            LaunchedEffect(current.organization.id, current.canManageOrganization) {
+                membersViewModel.start(current.organization.id, canManage = current.canManageOrganization)
             }
             SitesContent(
                 state = current,
                 onSiteClick = onSiteClick,
                 onNewSite = { onNewSite(current.organization.id) },
                 onEditOrganization = onEditOrganization,
-                membersSection = if (current.canManageOrganization) {
-                    {
-                        MembersCard(
-                            state = members,
-                            sites = current.sites,
-                            onGrantClick = membersViewModel::onGrantClick,
-                            onRevoke = membersViewModel::onRevokeRequest,
-                            onRetry = membersViewModel::refresh,
-                        )
-                    }
-                } else {
-                    null
+                membersSection = {
+                    MembersCard(
+                        state = members,
+                        sites = current.sites,
+                        onGrantClick = membersViewModel::onGrantClick,
+                        onRevoke = membersViewModel::onRevokeRequest,
+                        onRetry = membersViewModel::refresh,
+                    )
                 },
             )
             if (current.canManageOrganization) {
@@ -141,7 +137,7 @@ private fun SitesContent(
     onSiteClick: (String) -> Unit,
     onNewSite: () -> Unit,
     onEditOrganization: () -> Unit,
-    membersSection: (@Composable () -> Unit)?,
+    membersSection: @Composable () -> Unit,
 ) {
     Box(Modifier.fillMaxSize()) {
         LazyColumn(
@@ -177,10 +173,8 @@ private fun SitesContent(
             items(state.sites, key = { it.id }) { site ->
                 SiteCard(site = site, isActive = site.id == state.activeSiteId, onClick = { onSiteClick(site.id) })
             }
-            membersSection?.let { section ->
-                item { Spacer(Modifier.height(SemsSpacing.sm)) }
-                item { section() }
-            }
+            item { Spacer(Modifier.height(SemsSpacing.sm)) }
+            item { membersSection() }
         }
         if (state.canManageOrganization) {
             // FAB: radius 16 dp, Primary Container (design spec).

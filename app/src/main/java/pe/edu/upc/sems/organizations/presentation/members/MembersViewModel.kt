@@ -54,6 +54,8 @@ data class MembersUiState(
     val members: List<Member> = emptyList(),
     /** The signed-in user, to mark "Tú" and not offer removing their own access. */
     val currentUserId: String? = null,
+    /** ORG_ADMIN: grant and revoke. Everyone else sees the list read only (the backend answers 403). */
+    val canManage: Boolean = false,
     val grantForm: GrantForm? = null,
     /** Member waiting for the "Quitar acceso" confirmation. */
     val confirmingRevoke: Member? = null,
@@ -61,7 +63,10 @@ data class MembersUiState(
     val revokeError: FormError? = null,
 )
 
-/** "Quién tiene acceso" (web: MembersCard.vue). Only shown to ORG_ADMIN, who can grant and revoke. */
+/**
+ * "Quién tiene acceso" (web: MembersCard.vue). Every member can list it (backend: any active membership);
+ * only ORG_ADMIN can grant and revoke (backend: administraOrganizacion).
+ */
 @HiltViewModel
 class MembersViewModel @Inject constructor(
     private val repository: OrganizationRepository,
@@ -74,7 +79,8 @@ class MembersViewModel @Inject constructor(
     private var organizationId: String? = null
     private var loadJob: Job? = null
 
-    fun start(organizationId: String) {
+    fun start(organizationId: String, canManage: Boolean) {
+        _uiState.update { it.copy(canManage = canManage) }
         if (this.organizationId == organizationId) return
         this.organizationId = organizationId
         refresh()
@@ -96,6 +102,7 @@ class MembersViewModel @Inject constructor(
     // region Grant access
 
     fun onGrantClick() {
+        if (!_uiState.value.canManage) return
         _uiState.update { it.copy(grantForm = GrantForm()) }
     }
 
@@ -167,7 +174,7 @@ class MembersViewModel @Inject constructor(
 
     fun onRevokeRequest(member: Member) {
         // Removing your own access would lock you out of the organization.
-        if (member.userId == _uiState.value.currentUserId) return
+        if (!_uiState.value.canManage || member.userId == _uiState.value.currentUserId) return
         _uiState.update { it.copy(confirmingRevoke = member, revokeError = null) }
     }
 
