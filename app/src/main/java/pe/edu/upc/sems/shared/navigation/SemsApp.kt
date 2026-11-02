@@ -33,7 +33,6 @@ fun SemsApp(viewModel: AppViewModel = hiltViewModel()) {
                 AuthState.LoggedOut -> AuthNavHost(
                     sessionExpired = sessionExpired,
                     onSessionExpiredShown = viewModel::onSessionExpiredShown,
-                    onDebugEnter = viewModel::enterDebugSession,
                 )
                 AuthState.LoggedIn -> MainNavHost(onLogout = viewModel::logout)
             }

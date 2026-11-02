@@ -29,7 +29,29 @@
     <!-- Session -->
     <string name="session_expired">Tu sesión expiró. Inicia sesión de nuevo.</string>
 
-    <!-- Login placeholder (replaced by the real screen in the iam task) -->
-    <string name="login_title">Iniciar sesión</string>
-    <string name="login_debug_enter">Entrar sin cuenta (solo debug)</string>
+    <!-- Form validation -->
+    <string name="field_error_required">Este campo es obligatorio.</string>
+    <string name="field_error_invalid_email">Ingresa un correo válido.</string>
+
+    <!-- Login (M00, M01) -->
+    <string name="login_heading">Inicia sesión</string>
+    <string name="login_subtitle">Controla el consumo y el costo de tus locales desde tu celular.</string>
+    <string name="login_email_label">Correo electrónico</string>
+    <string name="login_password_label">Contraseña</string>
+    <string name="login_show_password">Mostrar contraseña</string>
+    <string name="login_hide_password">Ocultar contraseña</string>
+    <string name="login_forgot_password">¿Olvidaste tu contraseña?</string>
+    <string name="login_submit">Ingresar</string>
+    <string name="login_connecting">Conectando…</string>
+    <string name="login_no_account">¿No tienes cuenta?</string>
+    <string name="login_create_account">Crear cuenta</string>
+    <string name="login_footer">Energix · SEMS v%1$s</string>
+    <string name="login_error_credentials_title">Correo o contraseña incorrectos</string>
+    <string name="login_error_credentials_body">Revisa tus datos o recupera tu contraseña.</string>
+    <string name="login_error_no_connection_title">Sin conexión</string>
+    <string name="login_error_no_connection_body">Revisa tu conexión a internet e intenta de nuevo.</string>
+    <string name="login_error_timeout_title">El servidor está despertando</string>
+    <string name="login_error_timeout_body">La primera conexión puede tardar hasta un minuto. Intenta de nuevo.</string>
+    <string name="login_error_generic_title">No pudimos iniciar sesión</string>
+    <string name="login_error_generic_body">Intenta de nuevo en unos momentos.</string>
 </resources>

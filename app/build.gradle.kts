@@ -101,6 +101,7 @@ dependencies {
     // Testing
     testImplementation(libs.junit)
     testImplementation(libs.okhttp.mockwebserver) // fake HTTP server for network tests
+    testImplementation(libs.kotlinx.coroutines.test) // virtual time and Dispatchers.Main for ViewModel tests
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

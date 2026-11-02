@@ -1,35 +1,33 @@
 package pe.edu.upc.sems.shared.navigation
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import pe.edu.upc.sems.BuildConfig
 import pe.edu.upc.sems.R
-import pe.edu.upc.sems.shared.designsystem.SemsSpacing
+import pe.edu.upc.sems.iam.presentation.login.LoginScreen
 import pe.edu.upc.sems.shared.designsystem.components.ComingSoonScreen
 
-/** Access graph (logged out). The iam context will add register, verify and password screens here. */
+/** Access graph (logged out). Login succeeds by storing the session; SemsApp then shows the main graph. */
 @Composable
 fun AuthNavHost(
     sessionExpired: Boolean,
     onSessionExpiredShown: () -> Unit,
-    onDebugEnter: () -> Unit,
 ) {
     val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -49,32 +47,36 @@ fun AuthNavHost(
             navController = navController,
             startDestination = LoginRoute,
             modifier = Modifier.padding(padding),
+            enterTransition = semsEnterTransition(),
+            exitTransition = semsExitTransition(),
+            popEnterTransition = semsEnterTransition(),
+            popExitTransition = semsExitTransition(),
         ) {
-            composable<LoginRoute> { LoginPlaceholderScreen(onDebugEnter = onDebugEnter) }
+            composable<LoginRoute> {
+                LoginScreen(
+                    onForgotPassword = { navController.navigate(ForgotPasswordRoute) },
+                    onCreateAccount = { navController.navigate(RegisterRoute) },
+                )
+            }
+            // Placeholders until the register and password tasks of iam.
+            composable<RegisterRoute> { AuthPlaceholder(onBack = navController::popBackStack) }
+            composable<ForgotPasswordRoute> { AuthPlaceholder(onBack = navController::popBackStack) }
         }
     }
 }
 
-/** Temporary login placeholder; replaced by the real M00 screen in the iam task. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun LoginPlaceholderScreen(onDebugEnter: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(SemsSpacing.lg),
-        verticalArrangement = Arrangement.spacedBy(SemsSpacing.lg, Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(
-            text = stringResource(R.string.login_title),
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.onSurface,
+private fun AuthPlaceholder(onBack: () -> Unit) {
+    Column {
+        TopAppBar(
+            title = {},
+            navigationIcon = {
+                IconButton(onClick = onBack) {
+                    Icon(painterResource(R.drawable.ic_arrow_back), stringResource(R.string.action_back))
+                }
+            },
         )
-        ComingSoonScreen(modifier = Modifier.weight(1f, fill = false))
-        if (BuildConfig.DEBUG) {
-            OutlinedButton(onClick = onDebugEnter) {
-                Text(stringResource(R.string.login_debug_enter))
-            }
-        }
+        ComingSoonScreen()
     }
 }
