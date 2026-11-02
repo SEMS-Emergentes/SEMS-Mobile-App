@@ -221,6 +221,14 @@
     <string name="zone_type_parking">Estacionamiento</string>
     <string name="zone_type_other">Otra</string>
 
+    <!-- Plan limit when creating a site (409). Adapted from the web's device limit, DevicesView.vue. -->
+    <string name="site_error_plan_limit_title">Límite de tu plan</string>
+    <plurals name="site_error_plan_limit_body">
+        <item quantity="one">Alcanzaste el límite de %1$d local de tu plan %2$s. Mejora tu plan para agregar más.</item>
+        <item quantity="other">Alcanzaste el límite de %1$d locales de tu plan %2$s. Mejora tu plan para agregar más.</item>
+    </plurals>
+    <string name="site_error_plan_limit_body_generic">Tu plan no permite agregar más locales. Mejora tu plan para agregar más.</string>
+
     <!-- Sites (web: SitesView.vue, Figma M27) -->
     <string name="sites_section_title">Mis locales</string>
     <string name="sites_empty_admin">Todavía no tienes locales. Agrega el primero con \"Nuevo local\".</string>

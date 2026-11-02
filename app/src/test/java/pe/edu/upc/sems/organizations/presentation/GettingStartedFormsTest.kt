@@ -16,6 +16,9 @@ import pe.edu.upc.sems.organizations.domain.model.MembershipRole
 import pe.edu.upc.sems.organizations.domain.model.TariffCategory
 import pe.edu.upc.sems.organizations.domain.usecase.RefreshMembershipUseCase
 import pe.edu.upc.sems.organizations.presentation.common.FormError
+import pe.edu.upc.sems.organizations.presentation.common.SitePlanLimit
+import pe.edu.upc.sems.organizations.presentation.common.sitePlanLimit
+import pe.edu.upc.sems.organizations.presentation.common.toFormError
 import pe.edu.upc.sems.organizations.presentation.common.OrgFieldError
 import pe.edu.upc.sems.organizations.presentation.common.parseDecimal
 import pe.edu.upc.sems.organizations.presentation.gettingstarted.GettingStartedViewModel
@@ -174,6 +177,31 @@ class GettingStartedFormsTest {
 
         assertEquals(FormError.CONFLICT, siteViewModel.uiState.value.error)
         assertNull(session()?.selectedSite)
+    }
+
+    @Test
+    fun `the plan's site limit is not shown as a duplicated code`() = runTest(mainRule.dispatcher) {
+        // Real message from the backend (Render, Starter plan).
+        repository.createSiteResult = ApiResult.Failure(
+            ApiError.Http(409, "the Starter plan includes 1 site(s) and this organization already has 1; upgrade the plan to add more"),
+        )
+        fillSite()
+        siteViewModel.onSubmit()
+        advanceUntilIdle()
+
+        val state = siteViewModel.uiState.value
+        assertEquals(FormError.PLAN_LIMIT, state.error)
+        assertEquals(SitePlanLimit("Starter", 1), state.planLimit)
+        assertFalse(state.done)
+    }
+
+    @Test
+    fun `a plan limit message without numbers is still the plan limit`() {
+        val error = ApiError.Http(409, "upgrade the plan to add more sites")
+        assertEquals(FormError.PLAN_LIMIT, error.toFormError())
+        assertNull(error.sitePlanLimit())
+        // Other 409s keep meaning a duplicate.
+        assertNull(ApiError.Http(409, "a site with that site_code already exists").sitePlanLimit())
     }
 
     // endregion

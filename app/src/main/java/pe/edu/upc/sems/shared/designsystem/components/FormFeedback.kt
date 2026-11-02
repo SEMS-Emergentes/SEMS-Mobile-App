@@ -38,6 +38,16 @@ fun ErrorBanner(
     modifier: Modifier = Modifier,
     @StringRes actionLabel: Int? = null,
     onAction: (() -> Unit)? = null,
+) = ErrorBanner(stringResource(title), stringResource(body), modifier, actionLabel, onAction)
+
+/** Same banner with texts already formatted (e.g. with numbers from the API). */
+@Composable
+fun ErrorBanner(
+    title: String,
+    body: String,
+    modifier: Modifier = Modifier,
+    @StringRes actionLabel: Int? = null,
+    onAction: (() -> Unit)? = null,
 ) {
     Surface(
         color = MaterialTheme.colorScheme.errorContainer,
@@ -51,9 +61,9 @@ fun ErrorBanner(
             Icon(painterResource(R.drawable.ic_error), contentDescription = null)
             Spacer(Modifier.width(SemsSpacing.sm))
             Column {
-                Text(stringResource(title), style = MaterialTheme.typography.titleMedium)
+                Text(title, style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.height(SemsSpacing.xxs))
-                Text(stringResource(body), style = MaterialTheme.typography.bodyMedium)
+                Text(body, style = MaterialTheme.typography.bodyMedium)
                 if (actionLabel != null && onAction != null) {
                     TextButton(
                         onClick = onAction,

@@ -92,6 +92,7 @@ fun SiteFormScreen(
                 conflictTitle = R.string.site_error_code_taken_title,
                 conflictBody = R.string.site_error_code_taken_body,
                 onRetry = submit,
+                planLimit = state.planLimit,
             )
             Spacer(Modifier.height(SemsSpacing.md))
         }

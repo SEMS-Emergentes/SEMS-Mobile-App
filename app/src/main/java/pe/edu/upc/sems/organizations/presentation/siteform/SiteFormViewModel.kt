@@ -16,6 +16,8 @@ import pe.edu.upc.sems.organizations.domain.repository.OrganizationRepository
 import pe.edu.upc.sems.organizations.presentation.common.FormError
 import pe.edu.upc.sems.organizations.presentation.common.OrgFieldError
 import pe.edu.upc.sems.organizations.presentation.common.parseDecimal
+import pe.edu.upc.sems.organizations.presentation.common.SitePlanLimit
+import pe.edu.upc.sems.organizations.presentation.common.sitePlanLimit
 import pe.edu.upc.sems.organizations.presentation.common.toFormError
 import pe.edu.upc.sems.shared.network.ApiResult
 import pe.edu.upc.sems.shared.session.SelectedSite
@@ -50,6 +52,8 @@ data class SiteFormUiState(
     val isLoading: Boolean = false,
     val isSlow: Boolean = false,
     val error: FormError? = null,
+    /** Filled when [error] is the plan limit. */
+    val planLimit: SitePlanLimit? = null,
     /** One-shot: the site was saved; the screen goes back. */
     val done: Boolean = false,
 )
@@ -204,7 +208,14 @@ class SiteFormViewModel @Inject constructor(
                     _uiState.update { it.copy(isLoading = false, isSlow = false, done = true) }
                 }
                 is ApiResult.Failure ->
-                    _uiState.update { it.copy(isLoading = false, isSlow = false, error = result.error.toFormError()) }
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            isSlow = false,
+                            error = result.error.toFormError(),
+                            planLimit = result.error.sitePlanLimit(),
+                        )
+                    }
             }
         }
     }
