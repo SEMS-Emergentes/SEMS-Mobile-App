@@ -20,6 +20,12 @@ interface AuthRepository {
     /** Stores a session obtained with [verifyAccount]. */
     suspend fun startSession(account: AuthenticatedAccount)
 
+    /** Asks the backend to email a reset link. Succeeds whether or not the account exists. */
+    suspend fun requestPasswordReset(emailAddress: String): ApiResult<Unit>
+
+    /** Sets a new password with the token from the reset link. Does not log in. */
+    suspend fun resetPassword(token: String, newPassword: String): ApiResult<Unit>
+
     /** Revokes the refresh token on the backend (best effort) and always clears the local session. */
     suspend fun logout()
 }

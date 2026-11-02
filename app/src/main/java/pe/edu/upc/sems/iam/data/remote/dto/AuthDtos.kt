@@ -3,7 +3,8 @@ package pe.edu.upc.sems.iam.data.remote.dto
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-// IAM uses camelCase (Swagger: LoginRequest, LoginResponse, LogoutRequest, RegisterRequest, VerifyRequest).
+// IAM uses camelCase (Swagger: LoginRequest, LoginResponse, LogoutRequest, RegisterRequest, VerifyRequest,
+// ForgotPasswordRequest, ResetPasswordRequest).
 
 @Serializable
 data class LoginRequestDto(
@@ -40,4 +41,15 @@ data class RegisterRequestDto(
 @Serializable
 data class VerifyRequestDto(
     @SerialName("token") val token: String,
+)
+
+@Serializable
+data class ForgotPasswordRequestDto(
+    @SerialName("emailAddress") val emailAddress: String,
+)
+
+@Serializable
+data class ResetPasswordRequestDto(
+    @SerialName("token") val token: String,
+    @SerialName("newPassword") val newPassword: String,
 )

@@ -1,31 +1,29 @@
 package pe.edu.upc.sems.shared.navigation
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navDeepLink
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import kotlinx.coroutines.launch
+import pe.edu.upc.sems.BuildConfig
 import pe.edu.upc.sems.R
+import pe.edu.upc.sems.iam.presentation.password.ForgotPasswordScreen
+import pe.edu.upc.sems.iam.presentation.password.ResetLinkSentScreen
+import pe.edu.upc.sems.iam.presentation.password.ResetPasswordScreen
 import pe.edu.upc.sems.iam.presentation.login.LoginScreen
 import pe.edu.upc.sems.iam.presentation.register.RegisterScreen
 import pe.edu.upc.sems.iam.presentation.verify.VerifyAccountScreen
-import pe.edu.upc.sems.shared.designsystem.components.ComingSoonScreen
 
 /** Access graph (logged out). Login succeeds by storing the session; SemsApp then shows the main graph. */
 @Composable
@@ -36,6 +34,8 @@ fun AuthNavHost(
     val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
     val expiredMessage = stringResource(R.string.session_expired)
+    val passwordChangedMessage = stringResource(R.string.reset_success)
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(sessionExpired) {
         if (sessionExpired) {
@@ -58,7 +58,7 @@ fun AuthNavHost(
         ) {
             composable<LoginRoute> {
                 LoginScreen(
-                    onForgotPassword = { navController.navigate(ForgotPasswordRoute) },
+                    onForgotPassword = { email -> navController.navigate(ForgotPasswordRoute(email)) },
                     onCreateAccount = { navController.navigate(RegisterRoute) { launchSingleTop = true } },
                     onVerifyAccount = { email -> navController.navigate(VerifyAccountRoute(email)) },
                 )
@@ -76,26 +76,40 @@ fun AuthNavHost(
                     onClose = { navController.popBackStack(LoginRoute, inclusive = false) },
                 )
             }
-            // Placeholder until the password task of iam.
-            composable<ForgotPasswordRoute> { AuthPlaceholder(onBack = navController::popBackStack) }
+            composable<ForgotPasswordRoute> { entry ->
+                ForgotPasswordScreen(
+                    initialEmail = entry.toRoute<ForgotPasswordRoute>().email,
+                    onBack = navController::popBackStack,
+                    onLinkSent = { email ->
+                        navController.navigate(ResetLinkSentRoute(email)) {
+                            popUpTo<ForgotPasswordRoute> { inclusive = true }
+                        }
+                    },
+                )
+            }
+            composable<ResetLinkSentRoute> { entry ->
+                val email = entry.toRoute<ResetLinkSentRoute>().email
+                ResetLinkSentScreen(
+                    email = email,
+                    onBackToLogin = { navController.popBackStack(LoginRoute, inclusive = false) },
+                    onHaveLink = { navController.navigate(ResetPasswordRoute(email = email)) },
+                )
+            }
+            composable<ResetPasswordRoute>(
+                // Opens M30 from the email link once App Links are verified (assetlinks.json on the web app).
+                deepLinks = listOf(navDeepLink<ResetPasswordRoute>(basePath = "${BuildConfig.WEB_APP_URL}/reset-password")),
+            ) { entry ->
+                val route = entry.toRoute<ResetPasswordRoute>()
+                ResetPasswordScreen(
+                    tokenFromLink = route.token,
+                    email = route.email,
+                    onBack = navController::popBackStack,
+                    onPasswordChanged = {
+                        navController.popBackStack(LoginRoute, inclusive = false)
+                        scope.launch { snackbarHostState.showSnackbar(passwordChangedMessage) }
+                    },
+                )
+            }
         }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AuthPlaceholder(onBack: () -> Unit) {
-    Column {
-        TopAppBar(
-            // The access graph's Scaffold already pads for the status bar.
-            windowInsets = WindowInsets(0, 0, 0, 0),
-            title = {},
-            navigationIcon = {
-                IconButton(onClick = onBack) {
-                    Icon(painterResource(R.drawable.ic_arrow_back), stringResource(R.string.action_back))
-                }
-            },
-        )
-        ComingSoonScreen()
     }
 }

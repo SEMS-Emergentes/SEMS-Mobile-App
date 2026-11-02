@@ -50,7 +50,7 @@ import pe.edu.upc.sems.shared.designsystem.components.SemsLogoMark
 
 @Composable
 fun LoginScreen(
-    onForgotPassword: () -> Unit,
+    onForgotPassword: (email: String) -> Unit,
     onCreateAccount: () -> Unit,
     onVerifyAccount: (email: String) -> Unit,
     viewModel: LoginViewModel = hiltViewModel(),
@@ -61,7 +61,7 @@ fun LoginScreen(
         onEmailChange = viewModel::onEmailChange,
         onPasswordChange = viewModel::onPasswordChange,
         onSubmit = viewModel::onSubmit,
-        onForgotPassword = onForgotPassword,
+        onForgotPassword = { onForgotPassword(state.email) },
         onCreateAccount = onCreateAccount,
         onVerifyAccount = { onVerifyAccount(state.email) },
     )

@@ -13,10 +13,14 @@ class FakeAuthRepository : AuthRepository {
     val registerCalls = mutableListOf<Triple<String, String, String>>()
     val verifyCalls = mutableListOf<String>()
     val startedSessions = mutableListOf<AuthenticatedAccount>()
+    val resetRequests = mutableListOf<String>()
+    val resetCalls = mutableListOf<Pair<String, String>>()
 
     var loginResult: ApiResult<Unit> = ApiResult.Success(Unit)
     var registerResult: ApiResult<Unit> = ApiResult.Success(Unit)
     var verifyResult: ApiResult<AuthenticatedAccount> = ApiResult.Success(ACCOUNT)
+    var resetRequestResult: ApiResult<Unit> = ApiResult.Success(Unit)
+    var resetResult: ApiResult<Unit> = ApiResult.Success(Unit)
     var gate: CompletableDeferred<Unit>? = null
 
     override suspend fun login(emailAddress: String, password: String): ApiResult<Unit> {
@@ -39,6 +43,18 @@ class FakeAuthRepository : AuthRepository {
 
     override suspend fun startSession(account: AuthenticatedAccount) {
         startedSessions += account
+    }
+
+    override suspend fun requestPasswordReset(emailAddress: String): ApiResult<Unit> {
+        resetRequests += emailAddress
+        gate?.await()
+        return resetRequestResult
+    }
+
+    override suspend fun resetPassword(token: String, newPassword: String): ApiResult<Unit> {
+        resetCalls += token to newPassword
+        gate?.await()
+        return resetResult
     }
 
     override suspend fun logout() = Unit

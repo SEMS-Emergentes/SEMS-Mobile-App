@@ -39,6 +39,9 @@
     <string name="field_error_required">Este campo es obligatorio.</string>
     <string name="field_error_invalid_email">Ingresa un correo válido.</string>
     <string name="field_error_password_too_short">Usa al menos 6 caracteres.</string>
+    <string name="field_error_reset_password_too_short">Usa al menos 8 caracteres.</string>
+    <string name="field_error_passwords_do_not_match">Las contraseñas no coinciden.</string>
+    <string name="field_error_invalid_reset_link">Pega el enlace completo del correo.</string>
     <string name="field_error_terms_required">Debes aceptar los términos para crear tu cuenta.</string>
 
     <!-- Login (M00, M01) -->
@@ -92,4 +95,37 @@
     <string name="verified_body">Confirmamos tu correo %1$s. Ahora registra tu primer local para empezar a medir.</string>
     <string name="verified_tip">Ten a mano tu recibo de luz: necesitas la potencia contratada y la categoría tarifaria.</string>
     <string name="verified_continue">Continuar</string>
+
+    <!-- Forgot password (M03) -->
+    <string name="forgot_title">Recupera tu contraseña</string>
+    <string name="forgot_body">Ingresa el correo de tu cuenta y te enviaremos un enlace para crear una nueva contraseña.</string>
+    <string name="forgot_submit">Enviar enlace</string>
+    <string name="forgot_back_to_login">Volver a iniciar sesión</string>
+    <string name="password_error_generic_title">No pudimos completar la solicitud</string>
+
+    <!-- Link sent (M04). The backend link expires in 1 hour (the Figma said 30 minutes). -->
+    <string name="link_sent_title">Revisa tu correo</string>
+    <string name="link_sent_body">Enviamos un enlace a %1$s. Vence en 1 hora.</string>
+    <string name="link_sent_spam_tip">¿No lo ves? Revisa la carpeta de spam o promociones.</string>
+    <string name="link_sent_resend">Reenviar enlace</string>
+    <string name="link_sent_resend_countdown">Reenviar enlace (%1$s)</string>
+    <string name="link_sent_resent">Te enviamos un nuevo enlace.</string>
+    <string name="link_sent_have_link">Ya tengo el enlace</string>
+
+    <!-- Reset password (M30). The backend requires 8 characters here (sign-up requires 6). -->
+    <string name="reset_title">Crea una nueva contraseña</string>
+    <string name="reset_body">Para %1$s. El enlace vence en 1 hora.</string>
+    <string name="reset_body_no_email">El enlace del correo vence en 1 hora.</string>
+    <string name="reset_link_label">Enlace del correo</string>
+    <string name="reset_link_hint">Copia el enlace del correo y pégalo aquí.</string>
+    <string name="reset_new_password_label">Nueva contraseña</string>
+    <string name="reset_confirm_password_label">Confirmar contraseña</string>
+    <string name="reset_rule_min_length">%1$d caracteres o más</string>
+    <string name="reset_rule_match">Las dos contraseñas coinciden</string>
+    <string name="reset_rule_met">Cumplido</string>
+    <string name="reset_rule_not_met">Pendiente</string>
+    <string name="reset_submit">Guardar contraseña</string>
+    <string name="reset_error_invalid_link_title">El enlace no es válido o venció</string>
+    <string name="reset_error_invalid_link_body">Pide un enlace nuevo desde \"¿Olvidaste tu contraseña?\".</string>
+    <string name="reset_success">Contraseña actualizada. Inicia sesión con tu nueva contraseña.</string>
 </resources>

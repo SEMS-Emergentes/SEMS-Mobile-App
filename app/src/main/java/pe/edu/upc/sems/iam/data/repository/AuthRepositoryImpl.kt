@@ -4,10 +4,12 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import pe.edu.upc.sems.iam.data.mapper.toAuthenticatedAccount
 import pe.edu.upc.sems.iam.data.remote.AuthService
+import pe.edu.upc.sems.iam.data.remote.dto.ForgotPasswordRequestDto
 import pe.edu.upc.sems.iam.data.remote.dto.LoginRequestDto
 import pe.edu.upc.sems.iam.data.remote.dto.LoginResponseDto
 import pe.edu.upc.sems.iam.data.remote.dto.LogoutRequestDto
 import pe.edu.upc.sems.iam.data.remote.dto.RegisterRequestDto
+import pe.edu.upc.sems.iam.data.remote.dto.ResetPasswordRequestDto
 import pe.edu.upc.sems.iam.data.remote.dto.VerifyRequestDto
 import pe.edu.upc.sems.iam.domain.model.AuthenticatedAccount
 import pe.edu.upc.sems.iam.domain.repository.AuthRepository
@@ -44,6 +46,12 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun startSession(account: AuthenticatedAccount) {
         sessionManager.saveLogin(account.tokens, account.user)
     }
+
+    override suspend fun requestPasswordReset(emailAddress: String): ApiResult<Unit> =
+        safeApiCall { service.forgotPassword(ForgotPasswordRequestDto(emailAddress)) }
+
+    override suspend fun resetPassword(token: String, newPassword: String): ApiResult<Unit> =
+        safeApiCall { service.resetPassword(ResetPasswordRequestDto(token, newPassword)) }
 
     override suspend fun logout() {
         val refreshToken = sessionManager.session.first()?.tokens?.refreshToken

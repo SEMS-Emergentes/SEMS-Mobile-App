@@ -1,6 +1,10 @@
 package pe.edu.upc.sems.iam.presentation.common
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -28,7 +32,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -163,5 +169,26 @@ fun FieldError.message(): Int = when (this) {
     FieldError.REQUIRED -> R.string.field_error_required
     FieldError.INVALID_EMAIL -> R.string.field_error_invalid_email
     FieldError.PASSWORD_TOO_SHORT -> R.string.field_error_password_too_short
+    FieldError.RESET_PASSWORD_TOO_SHORT -> R.string.field_error_reset_password_too_short
+    FieldError.PASSWORDS_DO_NOT_MATCH -> R.string.field_error_passwords_do_not_match
     FieldError.TERMS_REQUIRED -> R.string.field_error_terms_required
+    FieldError.INVALID_RESET_LINK -> R.string.field_error_invalid_reset_link
+}
+
+/** Round tinted icon at the top of the password screens (M03, M04, M30). */
+@Composable
+fun AuthHeaderIcon(
+    @DrawableRes icon: Int,
+    containerColor: Color,
+    contentColor: Color,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .size(64.dp)
+            .background(containerColor, CircleShape),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(painterResource(icon), contentDescription = null, tint = contentColor, modifier = Modifier.size(32.dp))
+    }
 }

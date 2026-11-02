@@ -11,8 +11,19 @@ data object LoginRoute
 @Serializable
 data object RegisterRoute
 
+/** M03. [email] prefills the field with what was typed on the login screen. */
 @Serializable
-data object ForgotPasswordRoute
+data class ForgotPasswordRoute(val email: String = "")
+
+/** M04. */
+@Serializable
+data class ResetLinkSentRoute(val email: String)
+
+/**
+ * M30. [token] comes with an App Link (`https://<web>/reset-password?token=…`); when null, the user pastes the link.
+ */
+@Serializable
+data class ResetPasswordRoute(val token: String? = null, val email: String? = null)
 
 /** Fallback flow when the backend requires email verification. */
 @Serializable

@@ -186,4 +186,22 @@ class AuthRepositoryImplTest {
         repository.startSession(account)
         assertEquals(AuthTokens("jwt-1", "refresh-1"), session()?.tokens)
     }
+
+    @Test
+    fun `password reset request and reset send camelCase bodies`() = runBlocking {
+        server.enqueue(response(200, """{"message":"If that email is registered, you will receive a link."}"""))
+        server.enqueue(response(200, """{"message":"Contrasena actualizada correctamente."}"""))
+
+        assertEquals(ApiResult.Success(Unit), repository.requestPasswordReset("ana@example.com"))
+        assertEquals(ApiResult.Success(Unit), repository.resetPassword("tok-1", "NuevaClave8"))
+
+        val forgot = server.takeRequest(5, TimeUnit.SECONDS)!!
+        assertEquals("/api/v1/auth/forgot-password", forgot.url.encodedPath)
+        assertEquals("""{"emailAddress":"ana@example.com"}""", forgot.body?.utf8())
+        val reset = server.takeRequest(5, TimeUnit.SECONDS)!!
+        assertEquals("/api/v1/auth/reset-password", reset.url.encodedPath)
+        assertEquals("""{"token":"tok-1","newPassword":"NuevaClave8"}""", reset.body?.utf8())
+        // Resetting does not log in.
+        assertNull(session())
+    }
 }
