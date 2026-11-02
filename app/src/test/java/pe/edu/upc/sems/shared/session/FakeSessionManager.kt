@@ -29,7 +29,7 @@ class FakeSessionManager(initial: Session? = null) : SessionManager {
         state.update { it?.copy(tokens = tokens) }
     }
 
-    override suspend fun selectSite(site: SelectedSite) {
+    override suspend fun selectSite(site: SelectedSite?) {
         state.update { it?.copy(selectedSite = site) }
     }
 

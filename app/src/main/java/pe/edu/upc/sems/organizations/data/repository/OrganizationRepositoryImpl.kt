@@ -44,6 +44,9 @@ class OrganizationRepositoryImpl @Inject constructor(
     override suspend fun listSites(organizationId: String): ApiResult<List<Site>> =
         safeApiCall { service.listSites(organizationId) }.map { list -> list.map { it.toDomain() } }
 
+    override suspend fun getSite(siteId: String): ApiResult<Site> =
+        safeApiCall { service.getSite(siteId) }.map { it.toDomain() }
+
     override suspend fun createSite(organizationId: String, site: SiteDraft): ApiResult<Site> =
         safeApiCall { service.createSite(organizationId, site.toCreateRequest()) }.map { it.toDomain() }
 

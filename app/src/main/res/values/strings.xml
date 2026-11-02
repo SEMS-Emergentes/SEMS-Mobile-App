@@ -31,6 +31,12 @@
     <string name="action_open_menu">Abrir menú</string>
     <string name="action_back">Atrás</string>
     <string name="action_retry">Reintentar</string>
+    <string name="action_edit">Editar</string>
+    <string name="action_save">Guardar</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="answer_yes">Sí</string>
+    <string name="answer_no">No</string>
+    <string name="value_not_set">—</string>
     <string name="action_close">Cerrar</string>
 
     <!-- Common states -->
@@ -214,4 +220,47 @@
     <string name="zone_type_hvac">Climatización</string>
     <string name="zone_type_parking">Estacionamiento</string>
     <string name="zone_type_other">Otra</string>
+
+    <!-- Sites (web: SitesView.vue, Figma M27) -->
+    <string name="sites_section_title">Mis locales</string>
+    <string name="sites_empty_admin">Todavía no tienes locales. Agrega el primero con \"Nuevo local\".</string>
+    <string name="sites_active_badge">Local activo</string>
+    <string name="sites_contracted_power_chip">%1$s contratados</string>
+    <string name="sites_tariff_chip">Tarifa %1$s</string>
+    <plurals name="sites_count">
+        <item quantity="one">%1$d local</item>
+        <item quantity="other">%1$d locales</item>
+    </plurals>
+    <string name="org_summary">RUC %1$s · %2$s · %3$s</string>
+    <string name="org_edit_title">Editar organización</string>
+    <string name="org_ruc_locked">El RUC no se puede cambiar.</string>
+
+    <!-- Site detail (Figma M28, web: SitesView.vue) -->
+    <string name="site_edit_title">Editar local</string>
+    <string name="site_supply_title">Suministro</string>
+    <string name="site_contracted_power_row">Potencia contratada</string>
+    <string name="site_tariff_row">Categoría tarifaria</string>
+    <string name="site_power_charge_row">Cargo por potencia</string>
+    <string name="site_floor_area_row">Área</string>
+    <string name="site_sundays_row">Domingos en hora punta</string>
+    <string name="site_sundays_included">Sí cuentan</string>
+    <string name="site_sundays_excluded">No cuentan</string>
+    <string name="site_zones_title">Zonas del local</string>
+    <string name="site_zones_empty">Sin zonas. Divide el local para saber dónde se consume.</string>
+    <string name="site_add_zone">Añadir zona</string>
+    <string name="site_archive_title">Archivar local</string>
+    <string name="site_archive_message">¿Archivar el local \"%1$s\"? Dejará de aparecer, y sus dispositivos quedarán sin sede.</string>
+    <string name="site_archive_confirm">Archivar</string>
+
+    <!-- Zones (web: SitesView.vue) -->
+    <string name="zone_new_title">Nueva zona</string>
+    <string name="zone_edit_title">Editar zona</string>
+    <string name="zone_name_label">Nombre</string>
+    <string name="zone_name_placeholder">Ej: Cámaras de frío</string>
+    <string name="zone_type_label">Tipo</string>
+    <string name="zone_off_hours_label">Opera fuera del horario comercial</string>
+    <string name="zone_off_hours_badge">Opera fuera de horario</string>
+    <string name="zone_archive">Archivar zona</string>
+    <string name="zone_error_name_taken_title">Esa zona ya existe</string>
+    <string name="zone_error_name_taken_body">Otra zona de este local ya tiene ese nombre.</string>
 </resources>

@@ -42,6 +42,9 @@ interface OrganizationService {
         @Body body: CreateSiteRequestDto,
     ): SiteDto
 
+    @GET("sites/{siteId}")
+    suspend fun getSite(@Path("siteId") siteId: String): SiteDto
+
     @PUT("sites/{siteId}")
     suspend fun updateSite(@Path("siteId") siteId: String, @Body body: UpdateSiteRequestDto): SiteDto
 

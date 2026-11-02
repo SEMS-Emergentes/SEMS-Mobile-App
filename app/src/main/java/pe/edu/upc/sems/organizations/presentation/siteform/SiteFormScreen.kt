@@ -37,18 +37,19 @@ import pe.edu.upc.sems.organizations.presentation.common.OrgFieldError
 import pe.edu.upc.sems.organizations.presentation.common.description
 import pe.edu.upc.sems.organizations.presentation.common.message
 import pe.edu.upc.sems.shared.designsystem.SemsSpacing
+import pe.edu.upc.sems.shared.designsystem.components.LoadingScreen
 import pe.edu.upc.sems.shared.designsystem.components.SubmitButton
 
-/** "Nuevo local" (web: SiteModal.vue). */
+/** "Nuevo local" / "Editar local" (web: SiteModal.vue). */
 @Composable
 fun SiteFormScreen(
-    organizationId: String,
+    mode: SiteFormMode,
     onBack: () -> Unit,
     onSaved: () -> Unit,
     viewModel: SiteFormViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    LaunchedEffect(organizationId) { viewModel.start(organizationId) }
+    LaunchedEffect(mode) { viewModel.start(mode) }
     LaunchedEffect(state.done) {
         if (state.done) {
             viewModel.onDoneHandled()
@@ -61,7 +62,24 @@ fun SiteFormScreen(
         viewModel.onSubmit()
     }
 
-    FormScaffold(title = stringResource(R.string.site_new_title), onBack = onBack) {
+    val title = stringResource(if (state.isEdit) R.string.site_edit_title else R.string.site_new_title)
+    if (state.isLoadingSite) {
+        FormScaffold(title = title, onBack = onBack) { LoadingScreen() }
+        return
+    }
+    state.loadError?.let { error ->
+        FormScaffold(title = title, onBack = onBack) {
+            FormErrorBanner(
+                error = error,
+                conflictTitle = R.string.form_error_generic_title,
+                conflictBody = R.string.form_error_generic_body,
+                onRetry = viewModel::retryLoad,
+            )
+        }
+        return
+    }
+
+    FormScaffold(title = title, onBack = onBack) {
         Text(
             text = stringResource(R.string.getting_started_site_detail),
             style = MaterialTheme.typography.bodyLarge,
@@ -84,7 +102,8 @@ fun SiteFormScreen(
             placeholder = R.string.site_code_placeholder,
             error = state.siteCodeError,
             hint = R.string.site_code_hint,
-            enabled = !state.isLoading,
+            // The backend does not allow changing it.
+            enabled = !state.isLoading && !state.isEdit,
             capitalization = KeyboardCapitalization.Characters,
             onNext = { focusManager.moveFocus(FocusDirection.Down) },
         )
@@ -175,7 +194,7 @@ fun SiteFormScreen(
         }
         Spacer(Modifier.height(SemsSpacing.lg))
         SubmitButton(
-            label = R.string.site_create_submit,
+            label = if (state.isEdit) R.string.action_save else R.string.site_create_submit,
             isLoading = state.isLoading,
             isSlow = state.isSlow,
             onClick = submit,

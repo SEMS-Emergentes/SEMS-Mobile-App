@@ -12,10 +12,10 @@ enum class MembershipRole {
     UNKNOWN,
     ;
 
-    /** Create or archive sites and zones, manage members, edit the company. */
+    /** Create sites, edit the company and manage members. */
     val canManageOrganization: Boolean get() = this == ORG_ADMIN
 
-    /** Edit the site's supply data and its zones (within the membership's site). */
+    /** Edit or archive the site and create, edit or archive its zones (within the membership's site). */
     val canEditSites: Boolean get() = this == ORG_ADMIN || this == SUPERVISOR
 
     companion object {

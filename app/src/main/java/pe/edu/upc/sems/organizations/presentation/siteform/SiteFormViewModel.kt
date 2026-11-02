@@ -20,9 +20,20 @@ import pe.edu.upc.sems.organizations.presentation.common.toFormError
 import pe.edu.upc.sems.shared.network.ApiResult
 import pe.edu.upc.sems.shared.session.SelectedSite
 import pe.edu.upc.sems.shared.session.SessionManager
+import pe.edu.upc.sems.shared.util.Formatters
 import pe.edu.upc.sems.shared.util.withSlowNotice
 
+/** Create a site in an organization, or edit an existing one. */
+sealed interface SiteFormMode {
+    data class Create(val organizationId: String) : SiteFormMode
+    data class Edit(val siteId: String) : SiteFormMode
+}
+
 data class SiteFormUiState(
+    val isEdit: Boolean = false,
+    /** Edit mode: true while the site is being loaded. */
+    val isLoadingSite: Boolean = false,
+    val loadError: FormError? = null,
     val siteCode: String = "",
     val name: String = "",
     val address: String = "",
@@ -44,7 +55,7 @@ data class SiteFormUiState(
 )
 
 /**
- * "Nuevo local" (web: SiteModal.vue). Supply data (contracted power, tariff category) belongs to the site.
+ * "Nuevo local" / "Editar local" (web: SiteModal.vue). Supply data (contracted power, tariff category) belongs to the site.
  * The first site created becomes the active site.
  */
 @HiltViewModel
@@ -56,13 +67,47 @@ class SiteFormViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(SiteFormUiState())
     val uiState: StateFlow<SiteFormUiState> = _uiState.asStateFlow()
 
-    private var organizationId: String? = null
+    private var mode: SiteFormMode? = null
 
-    fun start(organizationId: String) {
-        this.organizationId = organizationId
+    fun start(mode: SiteFormMode) {
+        if (this.mode == mode) return
+        this.mode = mode
+        if (mode is SiteFormMode.Edit) loadSite(mode.siteId)
+    }
+
+    /** Edit mode: fills the form with the current values. The site code cannot be changed. */
+    private fun loadSite(siteId: String) {
+        _uiState.update { it.copy(isEdit = true, isLoadingSite = true, loadError = null) }
+        viewModelScope.launch {
+            when (val result = repository.getSite(siteId)) {
+                is ApiResult.Success -> {
+                    val site = result.data
+                    _uiState.update {
+                        it.copy(
+                            isLoadingSite = false,
+                            siteCode = site.siteCode,
+                            name = site.name,
+                            address = site.address.orEmpty(),
+                            district = site.district.orEmpty(),
+                            floorAreaM2 = site.floorAreaM2?.let(Formatters::editable).orEmpty(),
+                            contractedPowerKw = Formatters.editable(site.contractedPowerKw),
+                            tariffCategory = site.tariffCategory,
+                            excludesSundaysFromPeak = site.excludesSundaysFromPeak,
+                        )
+                    }
+                }
+                is ApiResult.Failure ->
+                    _uiState.update { it.copy(isLoadingSite = false, loadError = result.error.toFormError()) }
+            }
+        }
+    }
+
+    fun retryLoad() {
+        (mode as? SiteFormMode.Edit)?.let { loadSite(it.siteId) }
     }
 
     fun onSiteCodeChange(value: String) {
+        if (_uiState.value.isEdit) return
         _uiState.update { it.copy(siteCode = value.uppercase(), siteCodeError = null, error = null) }
     }
 
@@ -96,8 +141,8 @@ class SiteFormViewModel @Inject constructor(
 
     fun onSubmit() {
         val state = _uiState.value
-        val organizationId = organizationId ?: return
-        if (state.isLoading) return
+        val mode = mode ?: return
+        if (state.isLoading || state.isLoadingSite) return
 
         val power = parseDecimal(state.contractedPowerKw)
         val area = parseDecimal(state.floorAreaM2)
@@ -140,14 +185,21 @@ class SiteFormViewModel @Inject constructor(
         _uiState.update { it.copy(isLoading = true, isSlow = false, error = null) }
         viewModelScope.launch {
             val result = withSlowNotice(onSlow = { _uiState.update { it.copy(isSlow = true) } }) {
-                repository.createSite(organizationId, draft)
+                when (mode) {
+                    is SiteFormMode.Create -> repository.createSite(mode.organizationId, draft)
+                    is SiteFormMode.Edit -> repository.updateSite(mode.siteId, draft)
+                }
             }
             when (result) {
                 is ApiResult.Success -> {
                     val site = result.data
-                    // The first site becomes the active one, so the app always knows which site the user is in.
-                    if (sessionManager.session.first()?.selectedSite == null) {
-                        sessionManager.selectSite(SelectedSite(site.organizationId, site.id, site.name))
+                    val active = sessionManager.session.first()?.selectedSite
+                    when {
+                        // The first site becomes the active one, so the app always knows which site the user is in.
+                        active == null -> sessionManager.selectSite(SelectedSite(site.organizationId, site.id, site.name))
+                        // Renamed active site: keep the cached name in sync.
+                        active.siteId == site.id && active.siteName != site.name ->
+                            sessionManager.selectSite(active.copy(siteName = site.name))
                     }
                     _uiState.update { it.copy(isLoading = false, isSlow = false, done = true) }
                 }

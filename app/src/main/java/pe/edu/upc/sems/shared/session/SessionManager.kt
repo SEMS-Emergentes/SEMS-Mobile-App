@@ -17,8 +17,8 @@ interface SessionManager {
     /** Replaces the tokens after a refresh. Does nothing when logged out. */
     suspend fun updateTokens(tokens: AuthTokens)
 
-    /** Stores the site chosen in the site selector. Does nothing when logged out. */
-    suspend fun selectSite(site: SelectedSite)
+    /** Stores the site chosen in the site selector (null: no active site). Does nothing when logged out. */
+    suspend fun selectSite(site: SelectedSite?)
 
     /**
      * Stores the user's organization and role (null: no organization). Does nothing when logged out.

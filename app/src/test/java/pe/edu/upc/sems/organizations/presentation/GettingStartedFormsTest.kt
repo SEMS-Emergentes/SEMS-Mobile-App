@@ -20,6 +20,7 @@ import pe.edu.upc.sems.organizations.presentation.common.OrgFieldError
 import pe.edu.upc.sems.organizations.presentation.common.parseDecimal
 import pe.edu.upc.sems.organizations.presentation.gettingstarted.GettingStartedViewModel
 import pe.edu.upc.sems.organizations.presentation.organizationform.RegisterOrganizationViewModel
+import pe.edu.upc.sems.organizations.presentation.siteform.SiteFormMode
 import pe.edu.upc.sems.organizations.presentation.siteform.SiteFormViewModel
 import pe.edu.upc.sems.shared.network.ApiError
 import pe.edu.upc.sems.shared.network.ApiResult
@@ -103,7 +104,7 @@ class GettingStartedFormsTest {
 
     // region Add the first site
 
-    private val siteViewModel by lazy { SiteFormViewModel(repository, sessionManager).apply { start("org-1") } }
+    private val siteViewModel by lazy { SiteFormViewModel(repository, sessionManager).apply { start(SiteFormMode.Create("org-1")) } }
 
     private fun fillSite(power: String = "95,5", area: String = "") {
         siteViewModel.onSiteCodeChange("lim-001")

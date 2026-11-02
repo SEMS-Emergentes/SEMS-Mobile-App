@@ -25,6 +25,8 @@ interface OrganizationRepository {
     /** Active sites the user's membership reaches. */
     suspend fun listSites(organizationId: String): ApiResult<List<Site>>
 
+    suspend fun getSite(siteId: String): ApiResult<Site>
+
     /** 409 when the site code already exists in the organization. */
     suspend fun createSite(organizationId: String, site: SiteDraft): ApiResult<Site>
 

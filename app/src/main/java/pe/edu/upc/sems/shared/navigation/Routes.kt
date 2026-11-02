@@ -69,4 +69,16 @@ data object RegisterOrganizationRoute
 /** "Nuevo local". */
 @Serializable
 data class NewSiteRoute(val organizationId: String)
+
+/** "Detalle del local" (M28): supply data and zones. */
+@Serializable
+data class SiteDetailRoute(val siteId: String)
+
+/** "Editar local". */
+@Serializable
+data class EditSiteRoute(val siteId: String)
+
+/** "Editar organización" (ORG_ADMIN). */
+@Serializable
+data object EditOrganizationRoute
 // endregion

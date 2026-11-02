@@ -52,6 +52,10 @@ import androidx.navigation.toRoute
 import kotlinx.coroutines.launch
 import pe.edu.upc.sems.dashboard.presentation.DashboardScreen
 import pe.edu.upc.sems.organizations.presentation.organizationform.RegisterOrganizationScreen
+import pe.edu.upc.sems.organizations.presentation.organizationform.EditOrganizationScreen
+import pe.edu.upc.sems.organizations.presentation.sitedetail.SiteDetailScreen
+import pe.edu.upc.sems.organizations.presentation.sites.SitesScreen
+import pe.edu.upc.sems.organizations.presentation.siteform.SiteFormMode
 import pe.edu.upc.sems.organizations.presentation.siteform.SiteFormScreen
 import pe.edu.upc.sems.R
 import pe.edu.upc.sems.shared.designsystem.SemsSpacing
@@ -71,7 +75,11 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
     val bottomDestination = destination.bottomDestination()
     val drawerDestination = destination.drawerDestination()
     // Forms draw their own top bar with "back" and hide the bottom bar.
-    val isFullScreenForm = destination.isRoute(RegisterOrganizationRoute) || destination.isRoute(NewSiteRoute::class)
+    val isFullScreenForm = destination.isRoute(RegisterOrganizationRoute) ||
+        destination.isRoute(EditOrganizationRoute) ||
+        destination.isRoute(NewSiteRoute::class) ||
+        destination.isRoute(EditSiteRoute::class) ||
+        destination.isRoute(SiteDetailRoute::class)
     // Before the first destination is attached, treat the screen as top level (Home).
     val isTopLevel = drawerDestination == null && !isFullScreenForm
 
@@ -140,7 +148,14 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
                 composable<AnalyticsRoute> { ComingSoonScreen() }
                 // Drawer
                 composable<DevicesRoute> { ComingSoonScreen() }
-                composable<SitesRoute> { ComingSoonScreen() }
+                composable<SitesRoute> {
+                    SitesScreen(
+                        onSiteClick = { siteId -> navController.navigate(SiteDetailRoute(siteId)) },
+                        onNewSite = { organizationId -> navController.navigate(NewSiteRoute(organizationId)) },
+                        onEditOrganization = { navController.navigate(EditOrganizationRoute) },
+                        onRegisterCompany = { navController.navigate(RegisterOrganizationRoute) },
+                    )
+                }
                 composable<ReportsRoute> { ComingSoonScreen() }
                 composable<SubscriptionRoute> { ComingSoonScreen() }
                 composable<SettingsRoute> { ComingSoonScreen() }
@@ -153,7 +168,27 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
                 }
                 composable<NewSiteRoute> { entry ->
                     SiteFormScreen(
-                        organizationId = entry.toRoute<NewSiteRoute>().organizationId,
+                        mode = SiteFormMode.Create(entry.toRoute<NewSiteRoute>().organizationId),
+                        onBack = navController::popBackStack,
+                        onSaved = navController::popBackStack,
+                    )
+                }
+                composable<EditSiteRoute> { entry ->
+                    SiteFormScreen(
+                        mode = SiteFormMode.Edit(entry.toRoute<EditSiteRoute>().siteId),
+                        onBack = navController::popBackStack,
+                        onSaved = navController::popBackStack,
+                    )
+                }
+                composable<SiteDetailRoute> { entry ->
+                    SiteDetailScreen(
+                        siteId = entry.toRoute<SiteDetailRoute>().siteId,
+                        onBack = navController::popBackStack,
+                        onEdit = { siteId -> navController.navigate(EditSiteRoute(siteId)) },
+                    )
+                }
+                composable<EditOrganizationRoute> {
+                    EditOrganizationScreen(
                         onBack = navController::popBackStack,
                         onSaved = navController::popBackStack,
                     )

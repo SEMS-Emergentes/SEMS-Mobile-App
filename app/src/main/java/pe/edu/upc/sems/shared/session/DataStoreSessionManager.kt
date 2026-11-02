@@ -52,9 +52,13 @@ class DataStoreSessionManager @Inject constructor(
         }
     }
 
-    override suspend fun selectSite(site: SelectedSite) {
+    override suspend fun selectSite(site: SelectedSite?) {
         dataStore.edit { prefs ->
             if (prefs[Keys.USER_ID] == null) return@edit
+            if (site == null) {
+                prefs.removeSelectedSite()
+                return@edit
+            }
             prefs[Keys.ORGANIZATION_ID] = site.organizationId
             prefs[Keys.SITE_ID] = site.siteId
             prefs[Keys.SITE_NAME] = site.siteName
