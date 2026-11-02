@@ -12,11 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.navDeepLink
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import kotlinx.coroutines.launch
-import pe.edu.upc.sems.BuildConfig
 import pe.edu.upc.sems.R
 import pe.edu.upc.sems.iam.presentation.password.ForgotPasswordScreen
 import pe.edu.upc.sems.iam.presentation.password.ResetLinkSentScreen
@@ -30,6 +28,8 @@ import pe.edu.upc.sems.iam.presentation.verify.VerifyAccountScreen
 fun AuthNavHost(
     sessionExpired: Boolean,
     onSessionExpiredShown: () -> Unit,
+    pendingResetToken: String?,
+    onResetTokenConsumed: () -> Unit,
 ) {
     val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -43,6 +43,14 @@ fun AuthNavHost(
             // (and the snackbar) immediately.
             snackbarHostState.showSnackbar(expiredMessage)
             onSessionExpiredShown()
+        }
+    }
+
+    // A reset link that opened the app (App Link) is shown once; LoginRoute stays below it in the back stack.
+    LaunchedEffect(pendingResetToken) {
+        if (pendingResetToken != null) {
+            navController.navigate(ResetPasswordRoute(token = pendingResetToken))
+            onResetTokenConsumed()
         }
     }
 
@@ -95,10 +103,8 @@ fun AuthNavHost(
                     onHaveLink = { navController.navigate(ResetPasswordRoute(email = email)) },
                 )
             }
-            composable<ResetPasswordRoute>(
-                // Opens M30 from the email link once App Links are verified (assetlinks.json on the web app).
-                deepLinks = listOf(navDeepLink<ResetPasswordRoute>(basePath = "${BuildConfig.WEB_APP_URL}/reset-password")),
-            ) { entry ->
+            // No Navigation deep link here on purpose: the App Link is read once by MainActivity (see AppLinks).
+            composable<ResetPasswordRoute> { entry ->
                 val route = entry.toRoute<ResetPasswordRoute>()
                 ResetPasswordScreen(
                     tokenFromLink = route.token,
