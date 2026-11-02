@@ -39,7 +39,10 @@ class DataStoreSessionManager @Inject constructor(
             prefs.putOrRemove(Keys.FULL_NAME, user.fullName)
             prefs[Keys.ROLES] = user.roles
             prefs.putOrRemove(Keys.SEGMENT, user.segment)
-            if (!sameUser) prefs.removeSelectedSite()
+            if (!sameUser) {
+                prefs.removeSelectedSite()
+                prefs.removeMembership()
+            }
         }
     }
 
@@ -49,12 +52,34 @@ class DataStoreSessionManager @Inject constructor(
         }
     }
 
-    override suspend fun selectSite(site: SelectedSite) {
+    override suspend fun selectSite(site: SelectedSite?) {
         dataStore.edit { prefs ->
             if (prefs[Keys.USER_ID] == null) return@edit
+            if (site == null) {
+                prefs.removeSelectedSite()
+                return@edit
+            }
             prefs[Keys.ORGANIZATION_ID] = site.organizationId
             prefs[Keys.SITE_ID] = site.siteId
             prefs[Keys.SITE_NAME] = site.siteName
+        }
+    }
+
+    override suspend fun saveMembership(membership: SessionMembership?) {
+        dataStore.edit { prefs ->
+            if (prefs[Keys.USER_ID] == null) return@edit
+            if (membership == null) {
+                prefs.removeMembership()
+                prefs.removeSelectedSite()
+                return@edit
+            }
+            prefs[Keys.MEMBERSHIP_ORGANIZATION_ID] = membership.organizationId
+            prefs[Keys.MEMBERSHIP_ORGANIZATION_NAME] = membership.organizationName
+            prefs[Keys.MEMBERSHIP_ROLE] = membership.role
+            prefs.putOrRemove(Keys.MEMBERSHIP_SITE_ID, membership.siteId)
+            if (prefs[Keys.ORGANIZATION_ID] != null && prefs[Keys.ORGANIZATION_ID] != membership.organizationId) {
+                prefs.removeSelectedSite()
+            }
         }
     }
 
@@ -83,6 +108,17 @@ class DataStoreSessionManager @Inject constructor(
             } else {
                 null
             },
+            membership = toMembership(),
+        )
+    }
+
+    private fun Preferences.toMembership(): SessionMembership? {
+        val organizationId = this[Keys.MEMBERSHIP_ORGANIZATION_ID] ?: return null
+        return SessionMembership(
+            organizationId = organizationId,
+            organizationName = this[Keys.MEMBERSHIP_ORGANIZATION_NAME].orEmpty(),
+            role = this[Keys.MEMBERSHIP_ROLE].orEmpty(),
+            siteId = this[Keys.MEMBERSHIP_SITE_ID],
         )
     }
 
@@ -95,6 +131,13 @@ class DataStoreSessionManager @Inject constructor(
         remove(Keys.ORGANIZATION_ID)
         remove(Keys.SITE_ID)
         remove(Keys.SITE_NAME)
+    }
+
+    private fun MutablePreferences.removeMembership() {
+        remove(Keys.MEMBERSHIP_ORGANIZATION_ID)
+        remove(Keys.MEMBERSHIP_ORGANIZATION_NAME)
+        remove(Keys.MEMBERSHIP_ROLE)
+        remove(Keys.MEMBERSHIP_SITE_ID)
     }
 
     private fun MutablePreferences.putOrRemove(key: Preferences.Key<String>, value: String?) {
@@ -112,5 +155,9 @@ class DataStoreSessionManager @Inject constructor(
         val ORGANIZATION_ID = stringPreferencesKey("organization_id")
         val SITE_ID = stringPreferencesKey("site_id")
         val SITE_NAME = stringPreferencesKey("site_name")
+        val MEMBERSHIP_ORGANIZATION_ID = stringPreferencesKey("membership_organization_id")
+        val MEMBERSHIP_ORGANIZATION_NAME = stringPreferencesKey("membership_organization_name")
+        val MEMBERSHIP_ROLE = stringPreferencesKey("membership_role")
+        val MEMBERSHIP_SITE_ID = stringPreferencesKey("membership_site_id")
     }
 }

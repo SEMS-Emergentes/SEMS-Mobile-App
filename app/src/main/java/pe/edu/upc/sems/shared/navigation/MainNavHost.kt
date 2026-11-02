@@ -1,9 +1,15 @@
 package pe.edu.upc.sems.shared.navigation
 
+import androidx.annotation.StringRes
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import pe.edu.upc.sems.shared.designsystem.components.SemsLogoMark
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
@@ -42,7 +48,21 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import kotlinx.coroutines.launch
+import pe.edu.upc.sems.dashboard.presentation.DashboardScreen
+import pe.edu.upc.sems.organizations.presentation.organizationform.RegisterOrganizationScreen
+import pe.edu.upc.sems.organizations.presentation.organizationform.EditOrganizationScreen
+import pe.edu.upc.sems.organizations.presentation.sitedetail.SiteDetailScreen
+import pe.edu.upc.sems.organizations.presentation.sites.SitesScreen
+import pe.edu.upc.sems.organizations.presentation.siteform.SiteFormMode
+import pe.edu.upc.sems.organizations.presentation.siteform.SiteFormScreen
+import pe.edu.upc.sems.organizations.presentation.siteselector.SiteSelectorLabel
+import pe.edu.upc.sems.organizations.presentation.siteselector.SiteSelectorSheet
+import pe.edu.upc.sems.organizations.presentation.siteselector.SiteSelectorViewModel
 import pe.edu.upc.sems.R
 import pe.edu.upc.sems.shared.designsystem.SemsSpacing
 import pe.edu.upc.sems.shared.designsystem.components.ComingSoonScreen
@@ -60,8 +80,20 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
     val destination = backStackEntry?.destination
     val bottomDestination = destination.bottomDestination()
     val drawerDestination = destination.drawerDestination()
+    // Forms draw their own top bar with "back" and hide the bottom bar.
+    val isFullScreenForm = destination.isRoute(RegisterOrganizationRoute) ||
+        destination.isRoute(EditOrganizationRoute) ||
+        destination.isRoute(NewSiteRoute::class) ||
+        destination.isRoute(EditSiteRoute::class) ||
+        destination.isRoute(SiteDetailRoute::class)
     // Before the first destination is attached, treat the screen as top level (Home).
-    val isTopLevel = drawerDestination == null
+    val isTopLevel = drawerDestination == null && !isFullScreenForm
+
+    // Active site under the title of the main screens: always show which site the user is in.
+    val siteSelector: SiteSelectorViewModel = hiltViewModel()
+    val siteSelectorState by siteSelector.uiState.collectAsStateWithLifecycle()
+    // Back on a main screen (e.g. after creating or archiving a site in Locales): refresh the site list.
+    LaunchedEffect(isTopLevel) { if (isTopLevel) siteSelector.refresh() }
 
     // System back closes the open drawer instead of leaving the app.
     BackHandler(enabled = drawerState.isOpen) {
@@ -89,13 +121,18 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
     ) {
         Scaffold(
             topBar = {
-                SemsTopAppBar(
+                if (!isFullScreenForm) SemsTopAppBar(
                     title = stringResource(
                         drawerDestination?.label ?: bottomDestination?.label ?: BottomDestination.DASHBOARD.label,
                     ),
                     showBack = !isTopLevel,
                     onMenu = { scope.launch { drawerState.open() } },
                     onBack = { navController.popBackStack() },
+                    subtitle = if (isTopLevel) {
+                        { SiteSelectorLabel(state = siteSelectorState, onClick = siteSelector::onOpen) }
+                    } else {
+                        null
+                    },
                 )
             },
             bottomBar = {
@@ -117,18 +154,72 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
                 popExitTransition = semsExitTransition(),
             ) {
                 // Bottom navigation
-                composable<DashboardRoute> { ComingSoonScreen() }
+                composable<DashboardRoute> {
+                    DashboardScreen(
+                        onRegisterCompany = { navController.navigate(RegisterOrganizationRoute) },
+                        onAddFirstSite = { organizationId -> navController.navigate(NewSiteRoute(organizationId)) },
+                    )
+                }
                 composable<MonitoringRoute> { ComingSoonScreen() }
                 composable<AlertsRoute> { ComingSoonScreen() }
                 composable<AnalyticsRoute> { ComingSoonScreen() }
                 // Drawer
                 composable<DevicesRoute> { ComingSoonScreen() }
-                composable<SitesRoute> { ComingSoonScreen() }
+                composable<SitesRoute> {
+                    SitesScreen(
+                        onSiteClick = { siteId -> navController.navigate(SiteDetailRoute(siteId)) },
+                        onNewSite = { organizationId -> navController.navigate(NewSiteRoute(organizationId)) },
+                        onEditOrganization = { navController.navigate(EditOrganizationRoute) },
+                        onRegisterCompany = { navController.navigate(RegisterOrganizationRoute) },
+                    )
+                }
                 composable<ReportsRoute> { ComingSoonScreen() }
                 composable<SubscriptionRoute> { ComingSoonScreen() }
                 composable<SettingsRoute> { ComingSoonScreen() }
+                // Full-screen forms
+                composable<RegisterOrganizationRoute> {
+                    RegisterOrganizationScreen(
+                        onBack = navController::popBackStack,
+                        onRegistered = navController::popBackStack,
+                    )
+                }
+                composable<NewSiteRoute> { entry ->
+                    SiteFormScreen(
+                        mode = SiteFormMode.Create(entry.toRoute<NewSiteRoute>().organizationId),
+                        onBack = navController::popBackStack,
+                        onSaved = navController::popBackStack,
+                    )
+                }
+                composable<EditSiteRoute> { entry ->
+                    SiteFormScreen(
+                        mode = SiteFormMode.Edit(entry.toRoute<EditSiteRoute>().siteId),
+                        onBack = navController::popBackStack,
+                        onSaved = navController::popBackStack,
+                    )
+                }
+                composable<SiteDetailRoute> { entry ->
+                    SiteDetailScreen(
+                        siteId = entry.toRoute<SiteDetailRoute>().siteId,
+                        onBack = navController::popBackStack,
+                        onEdit = { siteId -> navController.navigate(EditSiteRoute(siteId)) },
+                    )
+                }
+                composable<EditOrganizationRoute> {
+                    EditOrganizationScreen(
+                        onBack = navController::popBackStack,
+                        onSaved = navController::popBackStack,
+                    )
+                }
             }
         }
+    }
+
+    if (siteSelectorState.isSheetOpen) {
+        SiteSelectorSheet(
+            state = siteSelectorState,
+            onSelect = siteSelector::onSelect,
+            onDismiss = siteSelector::onDismiss,
+        )
     }
 }
 
@@ -155,9 +246,15 @@ private fun SemsTopAppBar(
     showBack: Boolean,
     onMenu: () -> Unit,
     onBack: () -> Unit,
+    subtitle: (@Composable () -> Unit)? = null,
 ) {
     TopAppBar(
-        title = { Text(title, style = MaterialTheme.typography.titleLarge) },
+        title = {
+            Column {
+                Text(title, style = MaterialTheme.typography.titleLarge)
+                subtitle?.invoke()
+            }
+        },
         navigationIcon = {
             if (showBack) {
                 IconButton(onClick = onBack) {
@@ -234,13 +331,14 @@ private fun SemsDrawerContent(
         HorizontalDivider(Modifier.padding(horizontal = SemsSpacing.lg))
         Spacer(Modifier.height(SemsSpacing.xs))
 
-        // TODO(organizations): hide items with requiresOrgAdmin when the membership role is not ORG_ADMIN.
         Column(
             modifier = Modifier
                 .weight(1f)
                 .verticalScroll(rememberScrollState()),
         ) {
-            DrawerDestination.entries.forEach { item ->
+            DrawerDestination.entries
+                .filter { !it.requiresOrgAdmin || account?.canSeeAdminEntries == true }
+                .forEach { item ->
                 val isSelected = item == selected
                 NavigationDrawerItem(
                     label = { Text(stringResource(item.label)) },
@@ -260,6 +358,19 @@ private fun SemsDrawerContent(
             modifier = Modifier.padding(start = SemsSpacing.lg, end = SemsSpacing.xs, top = SemsSpacing.sm, bottom = SemsSpacing.md),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = account?.initials.orEmpty(),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+            Spacer(Modifier.width(SemsSpacing.sm))
             Column(Modifier.weight(1f)) {
                 Text(
                     text = account?.displayName.orEmpty(),
@@ -269,7 +380,7 @@ private fun SemsDrawerContent(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    text = stringResource(if (account?.isPlatformAdmin == true) R.string.role_admin else R.string.role_staff),
+                    text = stringResource(account.roleLabel()),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -279,4 +390,14 @@ private fun SemsDrawerContent(
             }
         }
     }
+}
+
+/** Membership role (as the web app's MembersCard) or, without organization, the IAM account role. */
+@StringRes
+private fun DrawerAccount?.roleLabel(): Int = when (this?.membershipRole) {
+    "ORG_ADMIN" -> R.string.membership_role_org_admin
+    "SUPERVISOR" -> R.string.membership_role_supervisor
+    "OPERATOR" -> R.string.membership_role_operator
+    null -> if (this?.isPlatformAdmin == true) R.string.role_admin else R.string.role_staff
+    else -> R.string.membership_role_unknown
 }

@@ -15,7 +15,13 @@ class FakeSessionManager(initial: Session? = null) : SessionManager {
 
     override suspend fun saveLogin(tokens: AuthTokens, user: SessionUser) {
         state.update { current ->
-            Session(tokens, user, current?.selectedSite?.takeIf { current.user.userId == user.userId })
+            val sameUser = current?.user?.userId == user.userId
+            Session(
+                tokens = tokens,
+                user = user,
+                selectedSite = current?.selectedSite?.takeIf { sameUser },
+                membership = current?.membership?.takeIf { sameUser },
+            )
         }
     }
 
@@ -23,8 +29,17 @@ class FakeSessionManager(initial: Session? = null) : SessionManager {
         state.update { it?.copy(tokens = tokens) }
     }
 
-    override suspend fun selectSite(site: SelectedSite) {
+    override suspend fun selectSite(site: SelectedSite?) {
         state.update { it?.copy(selectedSite = site) }
+    }
+
+    override suspend fun saveMembership(membership: SessionMembership?) {
+        state.update { session ->
+            session?.copy(
+                membership = membership,
+                selectedSite = session.selectedSite?.takeIf { membership != null && it.organizationId == membership.organizationId },
+            )
+        }
     }
 
     override suspend fun clear() {

@@ -21,10 +21,22 @@
     <string name="role_admin">Administrador</string>
     <string name="role_staff">Personal del establecimiento</string>
 
+    <!-- Membership roles (same labels as the web app's MembersCard.vue) -->
+    <string name="membership_role_org_admin">Administrador</string>
+    <string name="membership_role_supervisor">Supervisor</string>
+    <string name="membership_role_operator">Operario</string>
+    <string name="membership_role_unknown">Miembro</string>
+
     <!-- Top app bar -->
     <string name="action_open_menu">Abrir menú</string>
     <string name="action_back">Atrás</string>
     <string name="action_retry">Reintentar</string>
+    <string name="action_edit">Editar</string>
+    <string name="action_save">Guardar</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="answer_yes">Sí</string>
+    <string name="answer_no">No</string>
+    <string name="value_not_set">—</string>
     <string name="action_close">Cerrar</string>
 
     <!-- Common states -->
@@ -53,7 +65,7 @@
     <string name="login_hide_password">Ocultar contraseña</string>
     <string name="login_forgot_password">¿Olvidaste tu contraseña?</string>
     <string name="login_submit">Ingresar</string>
-    <string name="login_connecting">Conectando…</string>
+    <string name="connecting">Conectando…</string>
     <string name="login_no_account">¿No tienes cuenta?</string>
     <string name="login_create_account">Crear cuenta</string>
     <string name="login_footer">Energix · SEMS v%1$s</string>
@@ -128,4 +140,169 @@
     <string name="reset_error_invalid_link_title">El enlace no es válido o venció</string>
     <string name="reset_error_invalid_link_body">Pide un enlace nuevo desde \"¿Olvidaste tu contraseña?\".</string>
     <string name="reset_success">Contraseña actualizada. Inicia sesión con tu nueva contraseña.</string>
+
+    <!-- Common form texts -->
+    <string name="form_optional">Opcional</string>
+    <string name="form_error_generic_title">No se pudo guardar</string>
+    <string name="form_error_generic_body">Revisa tu conexión e inténtalo de nuevo.</string>
+    <string name="field_error_invalid_number">Ingresa un número válido.</string>
+    <string name="field_error_must_be_positive">Debe ser mayor que cero.</string>
+
+    <!-- Getting started (web: GettingStartedCard.vue) -->
+    <string name="getting_started_title">Primeros pasos</string>
+    <string name="getting_started_progress">%1$d/%2$d</string>
+    <string name="getting_started_subtitle">Tu panel se llena a medida que completas esto.</string>
+    <string name="getting_started_company_title">Registra tu empresa</string>
+    <string name="getting_started_company_detail">Razón social y RUC: es lo que identifica tus recibos.</string>
+    <string name="getting_started_site_title">Añade tu primer local</string>
+    <string name="getting_started_site_detail">La tarifa y la potencia contratada son del local, no de la empresa.</string>
+    <string name="getting_started_site_ask_admin">Pide al administrador de tu organización que agregue el primer local.</string>
+    <string name="getting_started_step_done">Completado</string>
+    <string name="getting_started_load_failed">No se pudieron cargar tus locales.</string>
+
+    <!-- Organization (web: SitesView.vue) -->
+    <string name="org_register_title">Registra tu organización</string>
+    <string name="org_legal_name_label">Razón social</string>
+    <string name="org_legal_name_placeholder">Ej: Comercial Los Andes S.A.C.</string>
+    <string name="org_trade_name_label">Nombre comercial</string>
+    <string name="org_trade_name_placeholder">Ej: Market Los Andes</string>
+    <string name="org_ruc_label">RUC</string>
+    <string name="org_ruc_hint">El RUC son 11 dígitos.</string>
+    <string name="org_business_type_label">Tipo de establecimiento</string>
+    <string name="org_register_submit">Registrar organización</string>
+    <string name="org_error_ruc_taken_title">Ese RUC ya está registrado</string>
+    <string name="org_error_ruc_taken_body">Revisa el RUC: puede estar ya en uso por otra organización.</string>
+
+    <!-- Business types (web: SitesView.vue) -->
+    <string name="business_type_supermarket">Supermercado</string>
+    <string name="business_type_convenience_store">Tienda de conveniencia</string>
+    <string name="business_type_department_store">Tienda por departamentos</string>
+    <string name="business_type_restaurant">Restaurante</string>
+    <string name="business_type_warehouse">Almacén</string>
+    <string name="business_type_other">Otro</string>
+
+    <!-- Site form (web: SiteModal.vue) -->
+    <string name="site_new_title">Nuevo local</string>
+    <string name="site_code_label">Código del local</string>
+    <string name="site_code_placeholder">Ej: LIM-001</string>
+    <string name="site_code_hint">Identifica la sede y no se puede cambiar después.</string>
+    <string name="site_name_label">Nombre</string>
+    <string name="site_name_placeholder">Ej: Miraflores</string>
+    <string name="site_address_label">Dirección</string>
+    <string name="site_address_placeholder">Ej: Av. Larco 345</string>
+    <string name="site_district_label">Distrito</string>
+    <string name="site_floor_area_label">Área (m²)</string>
+    <string name="site_floor_area_placeholder">Ej: 620</string>
+    <string name="site_contracted_power_label">Potencia contratada (kW)</string>
+    <string name="site_contracted_power_placeholder">Ej: 95</string>
+    <string name="site_tariff_label">Categoría tarifaria</string>
+    <string name="site_tariff_hint">Figura en tu recibo de luz.</string>
+    <string name="site_excludes_sundays_label">Los domingos no cuentan como hora punta</string>
+    <string name="site_excludes_sundays_hint">Solo si tu distribuidora te lo concedió.</string>
+    <string name="site_create_submit">Crear local</string>
+    <string name="site_error_code_taken_title">Ese código ya existe</string>
+    <string name="site_error_code_taken_body">Otro local de tu organización ya usa ese código. Elige uno distinto.</string>
+
+    <!-- Tariff categories (web: SiteModal.vue) -->
+    <string name="tariff_bt5b">BT5B — baja tensión, sin cargo por potencia</string>
+    <string name="tariff_bt3">BT3 — baja tensión con cargo por potencia</string>
+    <string name="tariff_bt4">BT4 — baja tensión con cargo por potencia</string>
+    <string name="tariff_mt2">MT2 — media tensión con cargo por potencia</string>
+    <string name="tariff_mt3">MT3 — media tensión con cargo por potencia</string>
+    <string name="tariff_unknown">Categoría desconocida</string>
+
+    <!-- Zone types (web: SitesView.vue) -->
+    <string name="zone_type_sales_floor">Sala de ventas</string>
+    <string name="zone_type_cold_storage">Cámaras de frío</string>
+    <string name="zone_type_warehouse">Almacén</string>
+    <string name="zone_type_kitchen">Cocina</string>
+    <string name="zone_type_offices">Oficinas</string>
+    <string name="zone_type_hvac">Climatización</string>
+    <string name="zone_type_parking">Estacionamiento</string>
+    <string name="zone_type_other">Otra</string>
+
+    <!-- Site selector (active site under the title of the main screens) -->
+    <string name="site_selector_title">Elegir local</string>
+    <string name="site_selector_change_description">Local activo: %1$s. Cambiar de local</string>
+    <string name="site_selector_fixed_description">Local activo: %1$s</string>
+
+    <!-- Members (web: MembersCard.vue), inside "Locales", ORG_ADMIN only -->
+    <string name="members_title">Quién tiene acceso</string>
+    <string name="members_grant">Dar acceso</string>
+    <string name="members_empty">Nadie más tiene acceso todavía.</string>
+    <string name="members_load_error">No se pudo cargar quién tiene acceso.</string>
+    <string name="members_deleted_account">(cuenta eliminada)</string>
+    <string name="members_whole_organization">Toda la organización</string>
+    <string name="members_you">Tú</string>
+    <string name="members_this_person">esta persona</string>
+    <string name="members_revoke">Quitar acceso</string>
+    <string name="members_revoke_message">¿Quitar el acceso de %1$s?</string>
+    <string name="members_revoke_confirm">Quitar</string>
+    <string name="members_email_label">Correo de la persona</string>
+    <string name="members_email_placeholder">companero@empresa.pe</string>
+    <string name="members_role_label">Rol</string>
+    <string name="members_role_admin_desc">Manda en toda la organización.</string>
+    <string name="members_role_supervisor_desc">Responsable de un local concreto.</string>
+    <string name="members_role_operator_desc">Consulta y opera el día a día.</string>
+    <string name="members_site_required_label">Local a su cargo</string>
+    <string name="members_site_optional_label">Local (opcional)</string>
+    <string name="members_site_pick">Elige un local</string>
+    <string name="members_supervisor_no_sites">Un supervisor tiene que estar a cargo de un local, y todavía no has registrado ninguno.</string>
+    <string name="members_error_invalid_email">Escribe un correo válido.</string>
+    <string name="members_error_site_required">Elige el local que tendrá a su cargo.</string>
+    <string name="members_error_not_found_title">Ese correo no tiene cuenta</string>
+    <string name="members_error_not_found_body">Nadie está registrado con ese correo. La persona tiene que crear su cuenta primero.</string>
+    <string name="members_error_last_admin_title">No se pudo quitar el acceso</string>
+    <string name="members_error_last_admin_body">La organización no puede quedarse sin administrador.</string>
+
+    <!-- Plan limit when creating a site (409). Adapted from the web's device limit, DevicesView.vue. -->
+    <string name="site_error_plan_limit_title">Límite de tu plan</string>
+    <plurals name="site_error_plan_limit_body">
+        <item quantity="one">Alcanzaste el límite de %1$d local de tu plan %2$s. Mejora tu plan para agregar más.</item>
+        <item quantity="other">Alcanzaste el límite de %1$d locales de tu plan %2$s. Mejora tu plan para agregar más.</item>
+    </plurals>
+    <string name="site_error_plan_limit_body_generic">Tu plan no permite agregar más locales. Mejora tu plan para agregar más.</string>
+
+    <!-- Sites (web: SitesView.vue, Figma M27) -->
+    <string name="sites_section_title">Mis locales</string>
+    <string name="sites_empty_admin">Todavía no tienes locales. Agrega el primero con \"Nuevo local\".</string>
+    <string name="sites_active_badge">Local activo</string>
+    <string name="sites_contracted_power_chip">%1$s contratados</string>
+    <string name="sites_tariff_chip">Tarifa %1$s</string>
+    <plurals name="sites_count">
+        <item quantity="one">%1$d local</item>
+        <item quantity="other">%1$d locales</item>
+    </plurals>
+    <string name="org_summary">RUC %1$s · %2$s · %3$s</string>
+    <string name="org_edit_title">Editar organización</string>
+    <string name="org_ruc_locked">El RUC no se puede cambiar.</string>
+
+    <!-- Site detail (Figma M28, web: SitesView.vue) -->
+    <string name="site_edit_title">Editar local</string>
+    <string name="site_supply_title">Suministro</string>
+    <string name="site_contracted_power_row">Potencia contratada</string>
+    <string name="site_tariff_row">Categoría tarifaria</string>
+    <string name="site_power_charge_row">Cargo por potencia</string>
+    <string name="site_floor_area_row">Área</string>
+    <string name="site_sundays_row">Domingos en hora punta</string>
+    <string name="site_sundays_included">Sí cuentan</string>
+    <string name="site_sundays_excluded">No cuentan</string>
+    <string name="site_zones_title">Zonas del local</string>
+    <string name="site_zones_empty">Sin zonas. Divide el local para saber dónde se consume.</string>
+    <string name="site_add_zone">Añadir zona</string>
+    <string name="site_archive_title">Archivar local</string>
+    <string name="site_archive_message">¿Archivar el local \"%1$s\"? Dejará de aparecer, y sus dispositivos quedarán sin sede.</string>
+    <string name="site_archive_confirm">Archivar</string>
+
+    <!-- Zones (web: SitesView.vue) -->
+    <string name="zone_new_title">Nueva zona</string>
+    <string name="zone_edit_title">Editar zona</string>
+    <string name="zone_name_label">Nombre</string>
+    <string name="zone_name_placeholder">Ej: Cámaras de frío</string>
+    <string name="zone_type_label">Tipo</string>
+    <string name="zone_off_hours_label">Opera fuera del horario comercial</string>
+    <string name="zone_off_hours_badge">Opera fuera de horario</string>
+    <string name="zone_archive">Archivar zona</string>
+    <string name="zone_error_name_taken_title">Esa zona ya existe</string>
+    <string name="zone_error_name_taken_body">Otra zona de este local ya tiene ese nombre.</string>
 </resources>
