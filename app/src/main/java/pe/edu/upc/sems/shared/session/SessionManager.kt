@@ -20,6 +20,12 @@ interface SessionManager {
     /** Stores the site chosen in the site selector. Does nothing when logged out. */
     suspend fun selectSite(site: SelectedSite)
 
+    /**
+     * Stores the user's organization and role (null: no organization). Does nothing when logged out.
+     * A selected site from another organization is dropped.
+     */
+    suspend fun saveMembership(membership: SessionMembership?)
+
     /** Removes everything (logout or 401). */
     suspend fun clear()
 }

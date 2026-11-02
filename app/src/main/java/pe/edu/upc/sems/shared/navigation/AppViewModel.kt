@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import pe.edu.upc.sems.iam.domain.repository.AuthRepository
+import pe.edu.upc.sems.organizations.domain.usecase.RefreshMembershipUseCase
 import pe.edu.upc.sems.shared.session.SessionEvent
 import pe.edu.upc.sems.shared.session.SessionEvents
 import pe.edu.upc.sems.shared.session.SessionManager
@@ -32,9 +33,34 @@ sealed interface AuthState {
  */
 data class DrawerAccount(
     val displayName: String,
+    /** Up to two letters for the avatar (Figma M06). */
+    val initials: String,
+    /** Null while the user has no organization yet ("Sin organización"). */
+    val organizationName: String?,
+    /** Membership role (ORG_ADMIN, SUPERVISOR, OPERATOR); null without organization. */
+    val membershipRole: String?,
+    /** IAM account role, shown only when there is no membership yet. */
     val isPlatformAdmin: Boolean,
-    val organizationName: String? = null,
-)
+) {
+    /**
+     * ORG_ADMIN-only entries (Suscripción). A user without an organization still sees them:
+     * they become ORG_ADMIN of the company they register.
+     */
+    val canSeeAdminEntries: Boolean get() = membershipRole == null || membershipRole == ORG_ADMIN
+
+    companion object {
+        const val ORG_ADMIN = "ORG_ADMIN"
+
+        fun initialsOf(name: String): String =
+            name.trim()
+                .substringBefore('@')
+                .split(' ', '.', '_', '-')
+                .filter { it.isNotBlank() }
+                .take(2)
+                .joinToString("") { it.first().uppercase() }
+                .ifEmpty { "?" }
+    }
+}
 
 /** App-level state: which graph to show, the drawer account and the "session expired" message. */
 @HiltViewModel
@@ -42,6 +68,7 @@ class AppViewModel @Inject constructor(
     sessionManager: SessionManager,
     sessionEvents: SessionEvents,
     private val authRepository: AuthRepository,
+    private val refreshMembership: RefreshMembershipUseCase,
 ) : ViewModel() {
 
     val authState: StateFlow<AuthState> = sessionManager.session
@@ -52,8 +79,12 @@ class AppViewModel @Inject constructor(
     val drawerAccount: StateFlow<DrawerAccount?> = sessionManager.session
         .map { session ->
             session?.user?.let { user ->
+                val name = user.fullName ?: user.emailAddress
                 DrawerAccount(
-                    displayName = user.fullName ?: user.emailAddress,
+                    displayName = name,
+                    initials = DrawerAccount.initialsOf(name),
+                    organizationName = session.membership?.organizationName?.takeIf { it.isNotBlank() },
+                    membershipRole = session.membership?.role,
                     isPlatformAdmin = ADMIN_ROLE in user.roles,
                 )
             }
@@ -84,7 +115,11 @@ class AppViewModel @Inject constructor(
         // A reset link that arrives while logged in is dropped: it must not show up after the next logout.
         viewModelScope.launch {
             authState.collect { state ->
-                if (state == AuthState.LoggedIn) _pendingResetToken.value = null
+                if (state == AuthState.LoggedIn) {
+                    _pendingResetToken.value = null
+                    // After login and at startup: organization name and role for the drawer and the menu.
+                    refreshMembership()
+                }
             }
         }
     }

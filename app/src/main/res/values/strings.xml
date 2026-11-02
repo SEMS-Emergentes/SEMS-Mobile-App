@@ -21,6 +21,12 @@
     <string name="role_admin">Administrador</string>
     <string name="role_staff">Personal del establecimiento</string>
 
+    <!-- Membership roles (same labels as the web app's MembersCard.vue) -->
+    <string name="membership_role_org_admin">Administrador</string>
+    <string name="membership_role_supervisor">Supervisor</string>
+    <string name="membership_role_operator">Operario</string>
+    <string name="membership_role_unknown">Miembro</string>
+
     <!-- Top app bar -->
     <string name="action_open_menu">Abrir menú</string>
     <string name="action_back">Atrás</string>

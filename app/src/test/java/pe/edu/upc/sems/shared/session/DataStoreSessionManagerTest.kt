@@ -141,4 +141,46 @@ class DataStoreSessionManagerTest {
 
         assertEquals(Session(tokens, user, site), newManager().session.first())
     }
+
+    private val membership = SessionMembership("org-1", "Cadena Flores S.A.C.", "SUPERVISOR", "site-1")
+
+    @Test
+    fun `membership is stored and survives a restart`() = runBlocking {
+        manager.saveLogin(tokens, user)
+        manager.saveMembership(membership)
+        scope.cancel()
+        scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
+        assertEquals(membership, newManager().session.first()?.membership)
+    }
+
+    @Test
+    fun `another user does not inherit the membership`() = runBlocking {
+        manager.saveLogin(tokens, user)
+        manager.saveMembership(membership)
+
+        manager.saveLogin(tokens, user.copy(userId = "user-2"))
+
+        assertNull(manager.session.first()?.membership)
+    }
+
+    @Test
+    fun `losing the organization or changing it drops the selected site`() = runBlocking {
+        manager.saveLogin(tokens, user)
+        manager.saveMembership(membership.copy(organizationId = "org-1"))
+        manager.selectSite(site)
+        manager.saveMembership(membership.copy(organizationId = "org-2"))
+        assertNull(manager.session.first()?.selectedSite)
+
+        manager.selectSite(site.copy(organizationId = "org-2"))
+        manager.saveMembership(null)
+        assertNull(manager.session.first()?.membership)
+        assertNull(manager.session.first()?.selectedSite)
+    }
+
+    @Test
+    fun `saveMembership does nothing when logged out`() = runBlocking {
+        manager.saveMembership(membership)
+        assertNull(manager.session.first())
+    }
 }

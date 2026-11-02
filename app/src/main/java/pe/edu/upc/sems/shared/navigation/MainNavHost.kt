@@ -1,9 +1,15 @@
 package pe.edu.upc.sems.shared.navigation
 
+import androidx.annotation.StringRes
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import pe.edu.upc.sems.shared.designsystem.components.SemsLogoMark
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
@@ -234,13 +240,14 @@ private fun SemsDrawerContent(
         HorizontalDivider(Modifier.padding(horizontal = SemsSpacing.lg))
         Spacer(Modifier.height(SemsSpacing.xs))
 
-        // TODO(organizations): hide items with requiresOrgAdmin when the membership role is not ORG_ADMIN.
         Column(
             modifier = Modifier
                 .weight(1f)
                 .verticalScroll(rememberScrollState()),
         ) {
-            DrawerDestination.entries.forEach { item ->
+            DrawerDestination.entries
+                .filter { !it.requiresOrgAdmin || account?.canSeeAdminEntries == true }
+                .forEach { item ->
                 val isSelected = item == selected
                 NavigationDrawerItem(
                     label = { Text(stringResource(item.label)) },
@@ -260,6 +267,19 @@ private fun SemsDrawerContent(
             modifier = Modifier.padding(start = SemsSpacing.lg, end = SemsSpacing.xs, top = SemsSpacing.sm, bottom = SemsSpacing.md),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = account?.initials.orEmpty(),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+            Spacer(Modifier.width(SemsSpacing.sm))
             Column(Modifier.weight(1f)) {
                 Text(
                     text = account?.displayName.orEmpty(),
@@ -269,7 +289,7 @@ private fun SemsDrawerContent(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    text = stringResource(if (account?.isPlatformAdmin == true) R.string.role_admin else R.string.role_staff),
+                    text = stringResource(account.roleLabel()),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -279,4 +299,14 @@ private fun SemsDrawerContent(
             }
         }
     }
+}
+
+/** Membership role (as the web app's MembersCard) or, without organization, the IAM account role. */
+@StringRes
+private fun DrawerAccount?.roleLabel(): Int = when (this?.membershipRole) {
+    "ORG_ADMIN" -> R.string.membership_role_org_admin
+    "SUPERVISOR" -> R.string.membership_role_supervisor
+    "OPERATOR" -> R.string.membership_role_operator
+    null -> if (this?.isPlatformAdmin == true) R.string.role_admin else R.string.role_staff
+    else -> R.string.membership_role_unknown
 }

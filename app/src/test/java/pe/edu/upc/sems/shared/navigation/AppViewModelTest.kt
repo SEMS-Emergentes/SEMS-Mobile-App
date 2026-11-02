@@ -9,6 +9,12 @@ import org.junit.Rule
 import org.junit.Test
 import pe.edu.upc.sems.BuildConfig
 import pe.edu.upc.sems.iam.FakeAuthRepository
+import pe.edu.upc.sems.organizations.FakeOrganizationRepository
+import pe.edu.upc.sems.organizations.domain.model.MembershipRole
+import pe.edu.upc.sems.organizations.domain.usecase.RefreshMembershipUseCase
+import pe.edu.upc.sems.shared.network.ApiResult
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import pe.edu.upc.sems.shared.session.AuthTokens
 import pe.edu.upc.sems.shared.session.FakeSessionManager
 import pe.edu.upc.sems.shared.session.SessionEvents
@@ -28,7 +34,15 @@ class AppViewModelTest {
 
     private val sessionManager = FakeSessionManager()
     // Lazy: AppViewModel starts its flows on Dispatchers.Main in the constructor, after the rule replaces it.
-    private val viewModel by lazy { AppViewModel(sessionManager, SessionEvents(), FakeAuthRepository()) }
+    private val organizations = FakeOrganizationRepository()
+    private val viewModel by lazy {
+        AppViewModel(
+            sessionManager,
+            SessionEvents(),
+            FakeAuthRepository(),
+            RefreshMembershipUseCase(organizations, sessionManager),
+        )
+    }
 
     private val resetLink = "${BuildConfig.WEB_APP_URL}/reset-password?token=tok-1"
     private val user = SessionUser("user-1", "ana@example.com", "Ana", setOf("STAFF"), null)
@@ -86,5 +100,51 @@ class AppViewModelTest {
         viewModel.onLaunchLink("${BuildConfig.WEB_APP_URL}/login")
         viewModel.onLaunchLink(null)
         assertNull(viewModel.pendingResetToken.value)
+    }
+
+    @Test
+    fun `login loads the membership into the drawer`() = runTest(mainRule.dispatcher) {
+        organizations.myOrganizationResult = ApiResult.Success(FakeOrganizationRepository.access(MembershipRole.ORG_ADMIN))
+        viewModel
+        sessionManager.saveLogin(AuthTokens("jwt", "refresh"), user.copy(fullName = "Valeria Rojas"))
+        advanceUntilIdle()
+
+        val account = viewModel.drawerAccount.value!!
+        assertEquals(listOf("user-1"), organizations.myOrganizationCalls)
+        assertEquals("Cadena Flores S.A.C.", account.organizationName)
+        assertEquals("ORG_ADMIN", account.membershipRole)
+        assertEquals("VR", account.initials)
+        assertTrue(account.canSeeAdminEntries)
+    }
+
+    @Test
+    fun `supervisors and operators do not see admin entries`() = runTest(mainRule.dispatcher) {
+        organizations.myOrganizationResult = ApiResult.Success(FakeOrganizationRepository.access(MembershipRole.OPERATOR, "site-1"))
+        viewModel
+        sessionManager.saveLogin(AuthTokens("jwt", "refresh"), user)
+        advanceUntilIdle()
+
+        assertEquals("OPERATOR", viewModel.drawerAccount.value!!.membershipRole)
+        assertFalse(viewModel.drawerAccount.value!!.canSeeAdminEntries)
+    }
+
+    @Test
+    fun `without organization the drawer says so and keeps admin entries for the future owner`() = runTest(mainRule.dispatcher) {
+        organizations.myOrganizationResult = ApiResult.Success(null)
+        viewModel
+        sessionManager.saveLogin(AuthTokens("jwt", "refresh"), user)
+        advanceUntilIdle()
+
+        val account = viewModel.drawerAccount.value!!
+        assertEquals(null, account.organizationName)
+        assertEquals(null, account.membershipRole)
+        assertTrue(account.canSeeAdminEntries)
+    }
+
+    @Test
+    fun `initials come from the name or the email`() {
+        assertEquals("VR", DrawerAccount.initialsOf("Valeria Rojas Pérez"))
+        assertEquals("S", DrawerAccount.initialsOf("sebastian@gmail.com"))
+        assertEquals("AT", DrawerAccount.initialsOf("ana.torres@example.com"))
     }
 }
