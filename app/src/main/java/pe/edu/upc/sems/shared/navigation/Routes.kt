@@ -13,6 +13,10 @@ data object RegisterRoute
 
 @Serializable
 data object ForgotPasswordRoute
+
+/** Fallback flow when the backend requires email verification. */
+@Serializable
+data class VerifyAccountRoute(val email: String)
 // endregion
 
 // region Main graph (logged in) — bottom navigation

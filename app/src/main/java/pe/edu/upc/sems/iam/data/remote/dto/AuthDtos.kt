@@ -3,7 +3,7 @@ package pe.edu.upc.sems.iam.data.remote.dto
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-// IAM uses camelCase (Swagger: LoginRequest, LoginResponse, LogoutRequest).
+// IAM uses camelCase (Swagger: LoginRequest, LoginResponse, LogoutRequest, RegisterRequest, VerifyRequest).
 
 @Serializable
 data class LoginRequestDto(
@@ -25,4 +25,19 @@ data class LoginResponseDto(
 @Serializable
 data class LogoutRequestDto(
     @SerialName("refreshToken") val refreshToken: String,
+)
+
+@Serializable
+data class RegisterRequestDto(
+    @SerialName("emailAddress") val emailAddress: String,
+    @SerialName("password") val password: String,
+    /** IAM RoleName. No default value on purpose: kotlinx does not encode defaults and the backend requires it. */
+    @SerialName("role") val role: String,
+    @SerialName("fullName") val fullName: String,
+    @SerialName("segment") val segment: String? = null,
+)
+
+@Serializable
+data class VerifyRequestDto(
+    @SerialName("token") val token: String,
 )

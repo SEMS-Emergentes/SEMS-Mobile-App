@@ -144,4 +144,46 @@ class AuthRepositoryImplTest {
 
         assertNull(session())
     }
+
+    @Test
+    fun `register sends role STAFF without segment and stores the session`() = runBlocking {
+        server.enqueue(response(200, loginResponse))
+
+        val result = repository.register("Ana Pérez", "ana@example.com", "secret-1")
+
+        assertEquals(ApiResult.Success(Unit), result)
+        val request = server.takeRequest(5, TimeUnit.SECONDS)!!
+        assertEquals("/api/v1/auth/register", request.url.encodedPath)
+        assertEquals(
+            """{"emailAddress":"ana@example.com","password":"secret-1","role":"STAFF","fullName":"Ana Pérez"}""",
+            request.body?.utf8(),
+        )
+        assertEquals("user-1", session()?.user?.userId)
+    }
+
+    @Test
+    fun `register with a taken email returns 409 and stores nothing`() = runBlocking {
+        server.enqueue(response(409, """{"code":"CONFLICT","message":"Email already exists"}"""))
+
+        val result = repository.register("Ana", "ana@example.com", "secret-1")
+
+        assertEquals(ApiResult.Failure(ApiError.Http(409, "Email already exists")), result)
+        assertNull(session())
+    }
+
+    @Test
+    fun `verify returns the account but only startSession stores it`() = runBlocking {
+        server.enqueue(response(200, loginResponse))
+
+        val result = repository.verifyAccount("code-123")
+
+        val request = server.takeRequest(5, TimeUnit.SECONDS)!!
+        assertEquals("/api/v1/auth/verify", request.url.encodedPath)
+        assertEquals("""{"token":"code-123"}""", request.body?.utf8())
+        assertNull(session())
+
+        val account = (result as ApiResult.Success).data
+        repository.startSession(account)
+        assertEquals(AuthTokens("jwt-1", "refresh-1"), session()?.tokens)
+    }
 }

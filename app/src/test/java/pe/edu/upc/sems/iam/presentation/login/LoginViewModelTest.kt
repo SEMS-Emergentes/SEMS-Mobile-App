@@ -12,7 +12,9 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import pe.edu.upc.sems.iam.domain.repository.AuthRepository
+import pe.edu.upc.sems.iam.FakeAuthRepository
+import pe.edu.upc.sems.iam.presentation.common.AuthValidation
+import pe.edu.upc.sems.iam.presentation.common.FieldError
 import pe.edu.upc.sems.shared.network.ApiError
 import pe.edu.upc.sems.shared.network.ApiResult
 import pe.edu.upc.sems.testing.MainDispatcherRule
@@ -23,27 +25,17 @@ class LoginViewModelTest {
     @get:Rule
     val mainRule = MainDispatcherRule()
 
-    /** Answers each login with [nextResult]; can be held open with [gate] to observe the loading state. */
-    private class FakeAuthRepository : AuthRepository {
-        val calls = mutableListOf<Pair<String, String>>()
-        var nextResult: ApiResult<Unit> = ApiResult.Success(Unit)
-        var gate: CompletableDeferred<Unit>? = null
-
-        override suspend fun login(emailAddress: String, password: String): ApiResult<Unit> {
-            calls += emailAddress to password
-            gate?.await()
-            return nextResult
-        }
-
-        override suspend fun logout() = Unit
-    }
-
     private val repository = FakeAuthRepository()
     private val viewModel = LoginViewModel(repository)
 
     private fun fill(email: String = "ana@example.com", password: String = "secret-1") {
         viewModel.onEmailChange(email)
         viewModel.onPasswordChange(password)
+    }
+
+    private fun submitWith(error: ApiError) {
+        repository.loginResult = ApiResult.Failure(error)
+        viewModel.onSubmit()
     }
 
     @Test
@@ -54,7 +46,7 @@ class LoginViewModelTest {
         val state = viewModel.uiState.value
         assertEquals(FieldError.REQUIRED, state.emailError)
         assertEquals(FieldError.REQUIRED, state.passwordError)
-        assertTrue(repository.calls.isEmpty())
+        assertTrue(repository.loginCalls.isEmpty())
     }
 
     @Test
@@ -64,7 +56,16 @@ class LoginViewModelTest {
         advanceUntilIdle()
 
         assertEquals(FieldError.INVALID_EMAIL, viewModel.uiState.value.emailError)
-        assertTrue(repository.calls.isEmpty())
+        assertTrue(repository.loginCalls.isEmpty())
+    }
+
+    @Test
+    fun `login does not apply the new-password length rule`() = runTest(mainRule.dispatcher) {
+        fill(password = "abc")
+        viewModel.onSubmit()
+        advanceUntilIdle()
+
+        assertEquals(listOf("ana@example.com" to "abc"), repository.loginCalls)
     }
 
     @Test
@@ -73,7 +74,7 @@ class LoginViewModelTest {
         viewModel.onSubmit()
         advanceUntilIdle()
 
-        assertEquals(listOf("ana@example.com" to "secret-1"), repository.calls)
+        assertEquals(listOf("ana@example.com" to "secret-1"), repository.loginCalls)
     }
 
     @Test
@@ -89,14 +90,23 @@ class LoginViewModelTest {
 
     @Test
     fun `401 shows invalid credentials`() = runTest(mainRule.dispatcher) {
-        repository.nextResult = ApiResult.Failure(ApiError.Unauthorized("Invalid credentials"))
         fill()
-        viewModel.onSubmit()
+        submitWith(ApiError.Unauthorized("Invalid credentials"))
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
         assertEquals(LoginError.INVALID_CREDENTIALS, state.error)
         assertFalse(state.isLoading)
+    }
+
+    @Test
+    fun `unverified account shows the verification fallback`() = runTest(mainRule.dispatcher) {
+        fill()
+        // Real backend message when REQUIRE_VERIFICATION is on.
+        submitWith(ApiError.Unauthorized("Account is not verified yet"))
+        advanceUntilIdle()
+
+        assertEquals(LoginError.NOT_VERIFIED, viewModel.uiState.value.error)
     }
 
     @Test
@@ -108,8 +118,7 @@ class LoginViewModelTest {
         )
         fill()
         cases.forEach { (apiError, expected) ->
-            repository.nextResult = ApiResult.Failure(apiError)
-            viewModel.onSubmit()
+            submitWith(apiError)
             advanceUntilIdle()
             assertEquals(expected, viewModel.uiState.value.error)
         }
@@ -117,9 +126,8 @@ class LoginViewModelTest {
 
     @Test
     fun `editing a field clears the banner`() = runTest(mainRule.dispatcher) {
-        repository.nextResult = ApiResult.Failure(ApiError.Unauthorized(null))
         fill()
-        viewModel.onSubmit()
+        submitWith(ApiError.Unauthorized(null))
         advanceUntilIdle()
 
         viewModel.onPasswordChange("another")
@@ -133,7 +141,7 @@ class LoginViewModelTest {
         fill()
         viewModel.onSubmit()
 
-        advanceTimeBy(LoginViewModel.SLOW_REQUEST_MS - 1)
+        advanceTimeBy(AuthValidation.SLOW_REQUEST_MS - 1)
         runCurrent()
         assertFalse(viewModel.uiState.value.isSlow)
 
@@ -141,7 +149,7 @@ class LoginViewModelTest {
         runCurrent()
         assertTrue(viewModel.uiState.value.isSlow)
 
-        repository.nextResult = ApiResult.Failure(ApiError.Timeout)
+        repository.loginResult = ApiResult.Failure(ApiError.Timeout)
         repository.gate?.complete(Unit)
         advanceUntilIdle()
         assertFalse(viewModel.uiState.value.isSlow)
@@ -156,15 +164,7 @@ class LoginViewModelTest {
         viewModel.onSubmit()
         runCurrent()
 
-        assertEquals(1, repository.calls.size)
+        assertEquals(1, repository.loginCalls.size)
         repository.gate?.complete(Unit)
-    }
-
-    @Test
-    fun `toggle shows and hides the password`() {
-        viewModel.onTogglePasswordVisibility()
-        assertTrue(viewModel.uiState.value.passwordVisible)
-        viewModel.onTogglePasswordVisibility()
-        assertFalse(viewModel.uiState.value.passwordVisible)
     }
 }

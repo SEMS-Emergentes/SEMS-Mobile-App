@@ -1,6 +1,7 @@
 package pe.edu.upc.sems.shared.navigation
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -19,8 +20,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import pe.edu.upc.sems.R
 import pe.edu.upc.sems.iam.presentation.login.LoginScreen
+import pe.edu.upc.sems.iam.presentation.register.RegisterScreen
+import pe.edu.upc.sems.iam.presentation.verify.VerifyAccountScreen
 import pe.edu.upc.sems.shared.designsystem.components.ComingSoonScreen
 
 /** Access graph (logged out). Login succeeds by storing the session; SemsApp then shows the main graph. */
@@ -55,11 +59,24 @@ fun AuthNavHost(
             composable<LoginRoute> {
                 LoginScreen(
                     onForgotPassword = { navController.navigate(ForgotPasswordRoute) },
-                    onCreateAccount = { navController.navigate(RegisterRoute) },
+                    onCreateAccount = { navController.navigate(RegisterRoute) { launchSingleTop = true } },
+                    onVerifyAccount = { email -> navController.navigate(VerifyAccountRoute(email)) },
                 )
             }
-            // Placeholders until the register and password tasks of iam.
-            composable<RegisterRoute> { AuthPlaceholder(onBack = navController::popBackStack) }
+            // A successful sign-up stores the session, so the app leaves this graph on its own.
+            composable<RegisterRoute> {
+                RegisterScreen(
+                    onBack = navController::popBackStack,
+                    onLogin = { navController.popBackStack(LoginRoute, inclusive = false) },
+                )
+            }
+            composable<VerifyAccountRoute> { entry ->
+                VerifyAccountScreen(
+                    email = entry.toRoute<VerifyAccountRoute>().email,
+                    onClose = { navController.popBackStack(LoginRoute, inclusive = false) },
+                )
+            }
+            // Placeholder until the password task of iam.
             composable<ForgotPasswordRoute> { AuthPlaceholder(onBack = navController::popBackStack) }
         }
     }
@@ -70,6 +87,8 @@ fun AuthNavHost(
 private fun AuthPlaceholder(onBack: () -> Unit) {
     Column {
         TopAppBar(
+            // The access graph's Scaffold already pads for the status bar.
+            windowInsets = WindowInsets(0, 0, 0, 0),
             title = {},
             navigationIcon = {
                 IconButton(onClick = onBack) {

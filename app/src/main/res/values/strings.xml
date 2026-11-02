@@ -25,6 +25,7 @@
     <string name="action_open_menu">Abrir menú</string>
     <string name="action_back">Atrás</string>
     <string name="action_retry">Reintentar</string>
+    <string name="action_close">Cerrar</string>
 
     <!-- Common states -->
     <string name="loading">Cargando…</string>
@@ -37,6 +38,8 @@
     <!-- Form validation -->
     <string name="field_error_required">Este campo es obligatorio.</string>
     <string name="field_error_invalid_email">Ingresa un correo válido.</string>
+    <string name="field_error_password_too_short">Usa al menos 6 caracteres.</string>
+    <string name="field_error_terms_required">Debes aceptar los términos para crear tu cuenta.</string>
 
     <!-- Login (M00, M01) -->
     <string name="login_heading">Inicia sesión</string>
@@ -59,4 +62,34 @@
     <string name="login_error_timeout_body">La primera conexión puede tardar hasta un minuto. Intenta de nuevo.</string>
     <string name="login_error_generic_title">No pudimos iniciar sesión</string>
     <string name="login_error_generic_body">Intenta de nuevo en unos momentos.</string>
+    <string name="login_error_not_verified_title">Verifica tu cuenta</string>
+    <string name="login_error_not_verified_body">Te enviamos un código a tu correo. Escríbelo para activar tu cuenta.</string>
+    <string name="login_enter_code">Ingresar código</string>
+
+    <!-- Register (M02, without the RUC: it is asked in "Primeros pasos") -->
+    <string name="register_title">Crear cuenta</string>
+    <string name="register_subtitle">Registra tu organización para empezar a medir el consumo de tus locales.</string>
+    <string name="register_full_name_label">Nombre completo</string>
+    <string name="register_password_hint">Mínimo 6 caracteres.</string>
+    <string name="register_terms">Acepto los términos y la política de privacidad</string>
+    <string name="register_submit">Crear cuenta</string>
+    <string name="register_have_account">¿Ya tienes cuenta?</string>
+    <string name="register_login">Inicia sesión</string>
+    <string name="register_error_email_taken_title">Ese correo ya tiene una cuenta</string>
+    <string name="register_error_email_taken_body">Inicia sesión o recupera tu contraseña.</string>
+    <string name="register_error_generic_title">No pudimos crear tu cuenta</string>
+
+    <!-- Verify account (fallback flow) and M29 -->
+    <string name="verify_title">Verifica tu cuenta</string>
+    <string name="verify_body">Te enviamos un código a %1$s. Escríbelo para activar tu cuenta.</string>
+    <string name="verify_body_no_email">Te enviamos un código a tu correo. Escríbelo para activar tu cuenta.</string>
+    <string name="verify_code_label">Código de verificación</string>
+    <string name="verify_submit">Verificar</string>
+    <string name="verify_error_invalid_title">El código no es válido</string>
+    <string name="verify_error_invalid_body">Revisa que esté completo o pide uno nuevo iniciando sesión otra vez.</string>
+    <string name="verify_error_generic_title">No pudimos verificar tu cuenta</string>
+    <string name="verified_title">¡Cuenta verificada!</string>
+    <string name="verified_body">Confirmamos tu correo %1$s. Ahora registra tu primer local para empezar a medir.</string>
+    <string name="verified_tip">Ten a mano tu recibo de luz: necesitas la potencia contratada y la categoría tarifaria.</string>
+    <string name="verified_continue">Continuar</string>
 </resources>

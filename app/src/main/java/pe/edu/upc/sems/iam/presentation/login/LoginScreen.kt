@@ -1,11 +1,9 @@
 package pe.edu.upc.sems.iam.presentation.login
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,18 +11,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -39,20 +31,19 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentType
-import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import pe.edu.upc.sems.BuildConfig
 import pe.edu.upc.sems.R
+import pe.edu.upc.sems.iam.presentation.common.AuthErrorBanner
+import pe.edu.upc.sems.iam.presentation.common.AuthSubmitButton
+import pe.edu.upc.sems.iam.presentation.common.PasswordField
+import pe.edu.upc.sems.iam.presentation.common.message
 import pe.edu.upc.sems.shared.designsystem.SemsSpacing
 import pe.edu.upc.sems.shared.designsystem.SemsTheme
 import pe.edu.upc.sems.shared.designsystem.components.SemsLogoMark
@@ -61,6 +52,7 @@ import pe.edu.upc.sems.shared.designsystem.components.SemsLogoMark
 fun LoginScreen(
     onForgotPassword: () -> Unit,
     onCreateAccount: () -> Unit,
+    onVerifyAccount: (email: String) -> Unit,
     viewModel: LoginViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -68,10 +60,10 @@ fun LoginScreen(
         state = state,
         onEmailChange = viewModel::onEmailChange,
         onPasswordChange = viewModel::onPasswordChange,
-        onTogglePasswordVisibility = viewModel::onTogglePasswordVisibility,
         onSubmit = viewModel::onSubmit,
         onForgotPassword = onForgotPassword,
         onCreateAccount = onCreateAccount,
+        onVerifyAccount = { onVerifyAccount(state.email) },
     )
 }
 
@@ -81,13 +73,17 @@ fun LoginContent(
     state: LoginUiState,
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
-    onTogglePasswordVisibility: () -> Unit,
     onSubmit: () -> Unit,
     onForgotPassword: () -> Unit,
     onCreateAccount: () -> Unit,
+    onVerifyAccount: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val focusManager = LocalFocusManager.current
+    val submit = {
+        focusManager.clearFocus()
+        onSubmit()
+    }
 
     // BoxWithConstraints + heightIn(min) keeps the footer at the bottom while the form can still scroll.
     BoxWithConstraints(modifier = modifier.imePadding()) {
@@ -116,11 +112,7 @@ fun LoginContent(
                 Spacer(Modifier.height(SemsSpacing.lg))
 
                 state.error?.let { error ->
-                    ErrorBanner(
-                        error = error,
-                        // Render's cold start can exceed the timeout: offer a visible retry.
-                        onRetry = if (error == LoginError.TIMEOUT) onSubmit else null,
-                    )
+                    LoginErrorBanner(error = error, onRetry = submit, onVerifyAccount = onVerifyAccount)
                     Spacer(Modifier.height(SemsSpacing.md))
                 }
 
@@ -140,41 +132,16 @@ fun LoginContent(
                         .semantics { contentType = ContentType.EmailAddress },
                 )
                 Spacer(Modifier.height(SemsSpacing.md))
-                OutlinedTextField(
+                PasswordField(
                     value = state.password,
                     onValueChange = onPasswordChange,
-                    label = { Text(stringResource(R.string.login_password_label)) },
+                    label = R.string.login_password_label,
                     leadingIcon = { Icon(painterResource(R.drawable.ic_lock), contentDescription = null) },
-                    trailingIcon = {
-                        IconButton(onClick = onTogglePasswordVisibility) {
-                            Icon(
-                                painter = painterResource(
-                                    if (state.passwordVisible) R.drawable.ic_visibility_off else R.drawable.ic_visibility,
-                                ),
-                                contentDescription = stringResource(
-                                    if (state.passwordVisible) R.string.login_hide_password else R.string.login_show_password,
-                                ),
-                            )
-                        }
-                    },
                     // Wrong credentials also mark the password field, as in M01.
                     isError = state.passwordError != null || state.error == LoginError.INVALID_CREDENTIALS,
                     supportingText = state.passwordError?.let { { Text(stringResource(it.message())) } },
-                    visualTransformation = if (state.passwordVisible) {
-                        VisualTransformation.None
-                    } else {
-                        PasswordVisualTransformation()
-                    },
-                    singleLine = true,
                     enabled = !state.isLoading,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(onDone = {
-                        focusManager.clearFocus()
-                        onSubmit()
-                    }),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .semantics { contentType = ContentType.Password },
+                    onImeAction = submit,
                 )
                 Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
                     TextButton(onClick = onForgotPassword, enabled = !state.isLoading) {
@@ -182,10 +149,12 @@ fun LoginContent(
                     }
                 }
                 Spacer(Modifier.height(SemsSpacing.xs))
-                SubmitButton(isLoading = state.isLoading, isSlow = state.isSlow, onClick = {
-                    focusManager.clearFocus()
-                    onSubmit()
-                })
+                AuthSubmitButton(
+                    label = R.string.login_submit,
+                    isLoading = state.isLoading,
+                    isSlow = state.isSlow,
+                    onClick = submit,
+                )
                 Spacer(Modifier.height(SemsSpacing.md))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -228,73 +197,29 @@ private fun BrandHeader() {
 }
 
 @Composable
-private fun ErrorBanner(error: LoginError, onRetry: (() -> Unit)?) {
-    val (title, body) = error.texts()
-    Surface(
-        color = MaterialTheme.colorScheme.errorContainer,
-        contentColor = MaterialTheme.colorScheme.onErrorContainer,
-        shape = MaterialTheme.shapes.medium,
-        modifier = Modifier
-            .fillMaxWidth()
-            .semantics { liveRegion = LiveRegionMode.Polite },
-    ) {
-        Row(modifier = Modifier.padding(SemsSpacing.md)) {
-            Icon(painterResource(R.drawable.ic_error), contentDescription = null)
-            Spacer(Modifier.width(SemsSpacing.sm))
-            Column {
-                Text(stringResource(title), style = MaterialTheme.typography.titleMedium)
-                Spacer(Modifier.height(SemsSpacing.xxs))
-                Text(stringResource(body), style = MaterialTheme.typography.bodyMedium)
-                if (onRetry != null) {
-                    TextButton(
-                        onClick = onRetry,
-                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onErrorContainer),
-                        contentPadding = PaddingValues(horizontal = 0.dp),
-                    ) {
-                        Text(stringResource(R.string.action_retry))
-                    }
-                }
-            }
-        }
+private fun LoginErrorBanner(error: LoginError, onRetry: () -> Unit, onVerifyAccount: () -> Unit) {
+    when (error) {
+        LoginError.INVALID_CREDENTIALS ->
+            AuthErrorBanner(R.string.login_error_credentials_title, R.string.login_error_credentials_body)
+        // Fallback flow: only happens if the backend requires email verification.
+        LoginError.NOT_VERIFIED -> AuthErrorBanner(
+            title = R.string.login_error_not_verified_title,
+            body = R.string.login_error_not_verified_body,
+            actionLabel = R.string.login_enter_code,
+            onAction = onVerifyAccount,
+        )
+        LoginError.NO_CONNECTION ->
+            AuthErrorBanner(R.string.login_error_no_connection_title, R.string.login_error_no_connection_body)
+        // Render's cold start can exceed the timeout: offer a visible retry.
+        LoginError.TIMEOUT -> AuthErrorBanner(
+            title = R.string.login_error_timeout_title,
+            body = R.string.login_error_timeout_body,
+            actionLabel = R.string.action_retry,
+            onAction = onRetry,
+        )
+        LoginError.GENERIC ->
+            AuthErrorBanner(R.string.login_error_generic_title, R.string.login_error_generic_body)
     }
-}
-
-@Composable
-private fun SubmitButton(isLoading: Boolean, isSlow: Boolean, onClick: () -> Unit) {
-    Button(
-        onClick = onClick,
-        enabled = !isLoading,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(48.dp),
-    ) {
-        if (isLoading) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(20.dp),
-                strokeWidth = 2.dp,
-                color = LocalContentColor.current,
-            )
-            if (isSlow) {
-                Spacer(Modifier.width(SemsSpacing.xs))
-                Text(stringResource(R.string.login_connecting))
-            }
-        } else {
-            Text(stringResource(R.string.login_submit))
-        }
-    }
-}
-
-@StringRes
-private fun FieldError.message(): Int = when (this) {
-    FieldError.REQUIRED -> R.string.field_error_required
-    FieldError.INVALID_EMAIL -> R.string.field_error_invalid_email
-}
-
-private fun LoginError.texts(): Pair<Int, Int> = when (this) {
-    LoginError.INVALID_CREDENTIALS -> R.string.login_error_credentials_title to R.string.login_error_credentials_body
-    LoginError.NO_CONNECTION -> R.string.login_error_no_connection_title to R.string.login_error_no_connection_body
-    LoginError.TIMEOUT -> R.string.login_error_timeout_title to R.string.login_error_timeout_body
-    LoginError.GENERIC -> R.string.login_error_generic_title to R.string.login_error_generic_body
 }
 
 @Preview(showBackground = true, heightDp = 800)
