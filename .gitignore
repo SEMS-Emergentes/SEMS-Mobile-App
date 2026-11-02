@@ -13,3 +13,10 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Android Studio files rewritten per machine/user (selected device, device list, VCS mapping)
+/.idea/deploymentTargetSelector.xml
+/.idea/deviceManager.xml
+/.idea/vcs.xml
+# Kotlin 2.x compiler cache
+.kotlin/
