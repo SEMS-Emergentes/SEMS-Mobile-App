@@ -26,6 +26,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,6 +44,10 @@ import pe.edu.upc.sems.organizations.domain.model.Site
 import pe.edu.upc.sems.organizations.presentation.common.FormErrorBanner
 import pe.edu.upc.sems.organizations.presentation.common.label
 import pe.edu.upc.sems.organizations.presentation.gettingstarted.GettingStartedCard
+import pe.edu.upc.sems.organizations.presentation.members.GrantAccessSheet
+import pe.edu.upc.sems.organizations.presentation.members.MembersCard
+import pe.edu.upc.sems.organizations.presentation.members.MembersViewModel
+import pe.edu.upc.sems.organizations.presentation.members.RevokeAccessDialog
 import pe.edu.upc.sems.shared.designsystem.SemsSpacing
 import pe.edu.upc.sems.shared.designsystem.components.LoadingScreen
 import pe.edu.upc.sems.shared.util.Formatters
@@ -55,6 +60,7 @@ fun SitesScreen(
     onEditOrganization: () -> Unit,
     onRegisterCompany: () -> Unit,
     viewModel: SitesViewModel = hiltViewModel(),
+    membersViewModel: MembersViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     // Reload when coming back from a form (new site, edited site or company).
@@ -80,12 +86,52 @@ fun SitesScreen(
             )
             TextButton(onClick = viewModel::refresh) { Text(stringResource(R.string.action_retry)) }
         }
-        is SitesUiState.Success -> SitesContent(
-            state = current,
-            onSiteClick = onSiteClick,
-            onNewSite = { onNewSite(current.organization.id) },
-            onEditOrganization = onEditOrganization,
-        )
+        is SitesUiState.Success -> {
+            val members by membersViewModel.uiState.collectAsStateWithLifecycle()
+            // Members are managed only by ORG_ADMIN (CLAUDE.md, rule 5; backend: administraOrganizacion).
+            if (current.canManageOrganization) {
+                LaunchedEffect(current.organization.id) { membersViewModel.start(current.organization.id) }
+            }
+            SitesContent(
+                state = current,
+                onSiteClick = onSiteClick,
+                onNewSite = { onNewSite(current.organization.id) },
+                onEditOrganization = onEditOrganization,
+                membersSection = if (current.canManageOrganization) {
+                    {
+                        MembersCard(
+                            state = members,
+                            sites = current.sites,
+                            onGrantClick = membersViewModel::onGrantClick,
+                            onRevoke = membersViewModel::onRevokeRequest,
+                            onRetry = membersViewModel::refresh,
+                        )
+                    }
+                } else {
+                    null
+                },
+            )
+            if (current.canManageOrganization) {
+                members.grantForm?.let { form ->
+                    GrantAccessSheet(
+                        form = form,
+                        sites = current.sites,
+                        onEmailChange = membersViewModel::onEmailChange,
+                        onRoleChange = membersViewModel::onRoleChange,
+                        onSiteChange = membersViewModel::onSiteChange,
+                        onSubmit = membersViewModel::onGrantSubmit,
+                        onDismiss = membersViewModel::onGrantDismiss,
+                    )
+                }
+                members.confirmingRevoke?.let { member ->
+                    RevokeAccessDialog(
+                        member = member,
+                        onConfirm = membersViewModel::onRevokeConfirm,
+                        onDismiss = membersViewModel::onRevokeDismiss,
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -95,6 +141,7 @@ private fun SitesContent(
     onSiteClick: (String) -> Unit,
     onNewSite: () -> Unit,
     onEditOrganization: () -> Unit,
+    membersSection: (@Composable () -> Unit)?,
 ) {
     Box(Modifier.fillMaxSize()) {
         LazyColumn(
@@ -129,6 +176,10 @@ private fun SitesContent(
             }
             items(state.sites, key = { it.id }) { site ->
                 SiteCard(site = site, isActive = site.id == state.activeSiteId, onClick = { onSiteClick(site.id) })
+            }
+            membersSection?.let { section ->
+                item { Spacer(Modifier.height(SemsSpacing.sm)) }
+                item { section() }
             }
         }
         if (state.canManageOrganization) {

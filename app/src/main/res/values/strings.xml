@@ -221,6 +221,35 @@
     <string name="zone_type_parking">Estacionamiento</string>
     <string name="zone_type_other">Otra</string>
 
+    <!-- Members (web: MembersCard.vue), inside "Locales", ORG_ADMIN only -->
+    <string name="members_title">Quién tiene acceso</string>
+    <string name="members_grant">Dar acceso</string>
+    <string name="members_empty">Nadie más tiene acceso todavía.</string>
+    <string name="members_load_error">No se pudo cargar quién tiene acceso.</string>
+    <string name="members_deleted_account">(cuenta eliminada)</string>
+    <string name="members_whole_organization">Toda la organización</string>
+    <string name="members_you">Tú</string>
+    <string name="members_this_person">esta persona</string>
+    <string name="members_revoke">Quitar acceso</string>
+    <string name="members_revoke_message">¿Quitar el acceso de %1$s?</string>
+    <string name="members_revoke_confirm">Quitar</string>
+    <string name="members_email_label">Correo de la persona</string>
+    <string name="members_email_placeholder">companero@empresa.pe</string>
+    <string name="members_role_label">Rol</string>
+    <string name="members_role_admin_desc">Manda en toda la organización.</string>
+    <string name="members_role_supervisor_desc">Responsable de un local concreto.</string>
+    <string name="members_role_operator_desc">Consulta y opera el día a día.</string>
+    <string name="members_site_required_label">Local a su cargo</string>
+    <string name="members_site_optional_label">Local (opcional)</string>
+    <string name="members_site_pick">Elige un local</string>
+    <string name="members_supervisor_no_sites">Un supervisor tiene que estar a cargo de un local, y todavía no has registrado ninguno.</string>
+    <string name="members_error_invalid_email">Escribe un correo válido.</string>
+    <string name="members_error_site_required">Elige el local que tendrá a su cargo.</string>
+    <string name="members_error_not_found_title">Ese correo no tiene cuenta</string>
+    <string name="members_error_not_found_body">Nadie está registrado con ese correo. La persona tiene que crear su cuenta primero.</string>
+    <string name="members_error_last_admin_title">No se pudo quitar el acceso</string>
+    <string name="members_error_last_admin_body">La organización no puede quedarse sin administrador.</string>
+
     <!-- Plan limit when creating a site (409). Adapted from the web's device limit, DevicesView.vue. -->
     <string name="site_error_plan_limit_title">Límite de tu plan</string>
     <plurals name="site_error_plan_limit_body">
