@@ -74,6 +74,7 @@ fun SiteFormScreen(
                 conflictTitle = R.string.form_error_generic_title,
                 conflictBody = R.string.form_error_generic_body,
                 onRetry = viewModel::retryLoad,
+                offerRetry = true,
             )
         }
         return

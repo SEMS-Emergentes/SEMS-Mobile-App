@@ -56,6 +56,7 @@ fun EditOrganizationScreen(
                 conflictTitle = R.string.form_error_generic_title,
                 conflictBody = R.string.form_error_generic_body,
                 onRetry = viewModel::load,
+                offerRetry = true,
             )
             return@FormScaffold
         }

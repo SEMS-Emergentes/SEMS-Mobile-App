@@ -83,8 +83,8 @@ fun SitesScreen(
                 conflictTitle = R.string.form_error_generic_title,
                 conflictBody = R.string.form_error_generic_body,
                 onRetry = viewModel::refresh,
+                offerRetry = true,
             )
-            TextButton(onClick = viewModel::refresh) { Text(stringResource(R.string.action_retry)) }
         }
         is SitesUiState.Success -> {
             val members by membersViewModel.uiState.collectAsStateWithLifecycle()

@@ -77,6 +77,10 @@ fun parseDecimal(text: String): Double? = text.trim().replace(',', '.').toDouble
  * Banner for a form error. [conflictTitle]/[conflictBody] explain the duplicate for each form
  * (RUC, site code…); [notFoundTitle]/[notFoundBody] are used by the members form (unknown email).
  * [planLimit] fills in the plan limit message (new site).
+ *
+ * "Reintentar" is always offered on a timeout (Render's cold start). With [offerRetry] (loading a screen,
+ * where there is nothing else to do) it is offered for every error, always inside the banner: the screens
+ * must not add a second retry button.
  */
 @Composable
 fun FormErrorBanner(
@@ -88,9 +92,12 @@ fun FormErrorBanner(
     @StringRes notFoundTitle: Int = R.string.form_error_generic_title,
     @StringRes notFoundBody: Int = R.string.form_error_generic_body,
     planLimit: SitePlanLimit? = null,
+    offerRetry: Boolean = false,
 ) {
+    val actionLabel = if (offerRetry || error == FormError.TIMEOUT) R.string.action_retry else null
+    val onAction = if (actionLabel != null) onRetry else null
     when (error) {
-        FormError.CONFLICT -> ErrorBanner(conflictTitle, conflictBody, modifier)
+        FormError.CONFLICT -> ErrorBanner(conflictTitle, conflictBody, modifier, actionLabel, onAction)
         // Adapted from the web app's device limit (DevicesView.vue): "Alcanzaste el límite de N … de tu plan X".
         FormError.PLAN_LIMIT -> ErrorBanner(
             title = stringResource(R.string.site_error_plan_limit_title),
@@ -99,18 +106,18 @@ fun FormErrorBanner(
             } ?: stringResource(R.string.site_error_plan_limit_body_generic),
             modifier = modifier,
         )
-        FormError.NOT_FOUND -> ErrorBanner(notFoundTitle, notFoundBody, modifier)
-        FormError.NO_CONNECTION ->
-            ErrorBanner(R.string.login_error_no_connection_title, R.string.login_error_no_connection_body, modifier)
-        // Render's cold start can exceed the timeout: offer a visible retry.
-        FormError.TIMEOUT -> ErrorBanner(
-            title = R.string.login_error_timeout_title,
-            body = R.string.login_error_timeout_body,
-            modifier = modifier,
-            actionLabel = R.string.action_retry,
-            onAction = onRetry,
+        FormError.NOT_FOUND -> ErrorBanner(notFoundTitle, notFoundBody, modifier, actionLabel, onAction)
+        FormError.NO_CONNECTION -> ErrorBanner(
+            R.string.login_error_no_connection_title,
+            R.string.login_error_no_connection_body,
+            modifier,
+            actionLabel,
+            onAction,
         )
-        FormError.GENERIC -> ErrorBanner(R.string.form_error_generic_title, R.string.form_error_generic_body, modifier)
+        FormError.TIMEOUT ->
+            ErrorBanner(R.string.login_error_timeout_title, R.string.login_error_timeout_body, modifier, actionLabel, onAction)
+        FormError.GENERIC ->
+            ErrorBanner(R.string.form_error_generic_title, R.string.form_error_generic_body, modifier, actionLabel, onAction)
     }
 }
 
