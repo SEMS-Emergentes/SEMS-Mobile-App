@@ -32,7 +32,7 @@ data class SiteSelectorUiState(
 
 /**
  * "Selector de local": which site the user is working on. The choice lives in the session and is sent with
- * site-scoped queries (CLAUDE.md, rule 2). The web app has no global selector (each view has its own),
+ * site-scoped queries. The web app has no global selector (each view has its own),
  * so this follows the business rule: always show the active site.
  */
 @HiltViewModel

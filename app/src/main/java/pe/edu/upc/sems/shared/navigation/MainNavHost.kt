@@ -89,7 +89,7 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
     // Before the first destination is attached, treat the screen as top level (Home).
     val isTopLevel = drawerDestination == null && !isFullScreenForm
 
-    // Active site under the title of the main screens (CLAUDE.md: always show which site the user is in).
+    // Active site under the title of the main screens: always show which site the user is in.
     val siteSelector: SiteSelectorViewModel = hiltViewModel()
     val siteSelectorState by siteSelector.uiState.collectAsStateWithLifecycle()
     // Back on a main screen (e.g. after creating or archiving a site in Locales): refresh the site list.

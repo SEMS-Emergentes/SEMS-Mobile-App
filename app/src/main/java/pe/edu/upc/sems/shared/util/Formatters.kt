@@ -5,7 +5,7 @@ import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 
 /**
- * Number formats of the project (CLAUDE.md): `4 820 kWh`, `238 kW`, `95,5 kW`.
+ * Number formats of the project: `4 820 kWh`, `238 kW`, `95,5 kW`.
  * Thousands separated by a non-breaking space (so "4 820 kWh" never wraps), decimal comma.
  */
 object Formatters {
