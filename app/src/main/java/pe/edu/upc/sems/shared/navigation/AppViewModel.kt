@@ -24,7 +24,19 @@ sealed interface AuthState {
     data object LoggedIn : AuthState
 }
 
-/** App-level state: which graph to show, and the "session expired" message. */
+/**
+ * Who is logged in, for the navigation drawer header and footer.
+ * [organizationName] stays null until the organizations context exists ("Sin organización").
+ * [isPlatformAdmin] is the IAM account role (ADMIN or STAFF); it will be replaced by the
+ * membership role (Administrador, Supervisor, Operario) with organizations.
+ */
+data class DrawerAccount(
+    val displayName: String,
+    val isPlatformAdmin: Boolean,
+    val organizationName: String? = null,
+)
+
+/** App-level state: which graph to show, the drawer account and the "session expired" message. */
 @HiltViewModel
 class AppViewModel @Inject constructor(
     sessionManager: SessionManager,
@@ -36,6 +48,18 @@ class AppViewModel @Inject constructor(
         .map { if (it == null) AuthState.LoggedOut else AuthState.LoggedIn }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, AuthState.Loading)
+
+    val drawerAccount: StateFlow<DrawerAccount?> = sessionManager.session
+        .map { session ->
+            session?.user?.let { user ->
+                DrawerAccount(
+                    displayName = user.fullName ?: user.emailAddress,
+                    isPlatformAdmin = ADMIN_ROLE in user.roles,
+                )
+            }
+        }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val _sessionExpired = MutableStateFlow(false)
 
@@ -58,5 +82,10 @@ class AppViewModel @Inject constructor(
     /** Revokes the refresh token on the backend (best effort) and clears the session. */
     fun logout() {
         viewModelScope.launch { authRepository.logout() }
+    }
+
+    private companion object {
+        /** IAM RoleName values are ADMIN (platform administrator) and STAFF (default). */
+        const val ADMIN_ROLE = "ADMIN"
     }
 }

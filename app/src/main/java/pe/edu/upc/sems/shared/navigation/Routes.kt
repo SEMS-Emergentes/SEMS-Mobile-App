@@ -17,7 +17,7 @@ data object ForgotPasswordRoute
 
 // region Main graph (logged in) — bottom navigation
 @Serializable
-data object HomeRoute
+data object DashboardRoute
 
 @Serializable
 data object MonitoringRoute
@@ -35,9 +35,6 @@ data object DevicesRoute
 
 @Serializable
 data object SitesRoute
-
-@Serializable
-data object OrganizationRoute
 
 @Serializable
 data object ReportsRoute

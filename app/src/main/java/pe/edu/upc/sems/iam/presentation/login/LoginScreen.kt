@@ -1,7 +1,6 @@
 package pe.edu.upc.sems.iam.presentation.login
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -17,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -37,7 +35,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.ContentType
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
@@ -58,6 +55,7 @@ import pe.edu.upc.sems.BuildConfig
 import pe.edu.upc.sems.R
 import pe.edu.upc.sems.shared.designsystem.SemsSpacing
 import pe.edu.upc.sems.shared.designsystem.SemsTheme
+import pe.edu.upc.sems.shared.designsystem.components.SemsLogoMark
 
 @Composable
 fun LoginScreen(
@@ -219,19 +217,7 @@ fun LoginContent(
 @Composable
 private fun BrandHeader() {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(RoundedCornerShape(SemsSpacing.sm))
-                .background(MaterialTheme.colorScheme.primary),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.ic_bolt),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimary,
-            )
-        }
+        SemsLogoMark()
         Spacer(Modifier.width(SemsSpacing.sm))
         Text(
             text = stringResource(R.string.app_name),

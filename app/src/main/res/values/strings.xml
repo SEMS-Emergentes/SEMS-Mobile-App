@@ -2,20 +2,24 @@
     <string name="app_name">SEMS</string>
     <string name="app_company">Energix</string>
 
-    <!-- Bottom navigation -->
-    <string name="nav_home">Inicio</string>
+    <!-- Bottom navigation (same names as the web app's AppSidebar.vue) -->
+    <string name="nav_dashboard">Resumen</string>
     <string name="nav_monitoring">Monitoreo</string>
     <string name="nav_alerts">Alertas</string>
     <string name="nav_analytics">Analítica</string>
 
-    <!-- Navigation drawer -->
-    <string name="nav_devices">Mis Dispositivos</string>
-    <string name="nav_sites">Mis locales</string>
-    <string name="nav_organization">Mi Organización</string>
-    <string name="nav_reports">Reportes PDF</string>
+    <!-- Navigation drawer (same names as the web app) -->
+    <string name="nav_devices">Dispositivos</string>
+    <string name="nav_reports">Reportes</string>
     <string name="nav_subscription">Suscripción</string>
+    <string name="nav_sites">Locales</string>
     <string name="nav_settings">Configuración</string>
     <string name="nav_logout">Cerrar sesión</string>
+    <string name="drawer_no_organization">Sin organización</string>
+
+    <!-- Account roles (IAM, same labels as the web app's SettingsView.vue) -->
+    <string name="role_admin">Administrador</string>
+    <string name="role_staff">Personal del establecimiento</string>
 
     <!-- Top app bar -->
     <string name="action_open_menu">Abrir menú</string>
