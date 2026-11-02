@@ -1,6 +1,10 @@
 package pe.edu.upc.sems.organizations.presentation
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import pe.edu.upc.sems.organizations.presentation.gettingstarted.GettingStartedUiState
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -249,18 +253,67 @@ class GettingStartedFormsTest {
     }
 
     @Test
-    fun `a failure loading sites keeps the card with a retry`() = runTest(mainRule.dispatcher) {
+    fun `a failure on a reload keeps the known steps with a retry`() = runTest(mainRule.dispatcher) {
         sessionManager.saveMembership(SessionMembership("org-1", "Cadena Flores S.A.C.", "ORG_ADMIN", null))
-        repository.listSitesResult = ApiResult.Failure(ApiError.Timeout)
         val viewModel = GettingStartedViewModel(repository, sessionManager)
+        advanceUntilIdle()
+        assertTrue(viewModel.uiState.value.isVisible)
+
+        repository.listSitesResult = ApiResult.Failure(ApiError.Timeout)
+        viewModel.retry()
         advanceUntilIdle()
         assertTrue(viewModel.uiState.value.loadFailed)
         assertTrue(viewModel.uiState.value.isVisible)
+        assertEquals(1, viewModel.uiState.value.completedSteps)
 
         repository.listSitesResult = ApiResult.Success(listOf(FakeOrganizationRepository.SITE))
         viewModel.retry()
         advanceUntilIdle()
         assertFalse(viewModel.uiState.value.isVisible)
+    }
+
+    @Test
+    fun `the card stays hidden when the steps could not be loaded`() = runTest(mainRule.dispatcher) {
+        // Offline or Render waking up: a missing step is not known, so nothing is claimed.
+        sessionManager.saveMembership(SessionMembership("org-1", "Cadena Flores S.A.C.", "ORG_ADMIN", null))
+        repository.listSitesResult = ApiResult.Failure(ApiError.NoConnection)
+        val viewModel = GettingStartedViewModel(repository, sessionManager)
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.isVisible)
+    }
+
+    @Test
+    fun `right after login an account with company and site never sees the card`() = runTest(mainRule.dispatcher) {
+        // Logout clears the session: after login the membership is not cached yet.
+        repository.myOrganizationResult = ApiResult.Success(FakeOrganizationRepository.access(MembershipRole.ORG_ADMIN))
+        repository.listSitesResult = ApiResult.Success(listOf(FakeOrganizationRepository.SITE))
+        val viewModel = GettingStartedViewModel(repository, sessionManager)
+        val states = mutableListOf<GettingStartedUiState>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.toList(states) }
+        advanceUntilIdle()
+
+        // The app then caches the membership and the active site (RefreshMembershipUseCase, selector).
+        sessionManager.saveMembership(SessionMembership("org-1", "Cadena Flores S.A.C.", "ORG_ADMIN", null))
+        sessionManager.selectSite(SelectedSite("org-1", "site-1", "Local San Isidro"))
+        advanceUntilIdle()
+
+        assertTrue(states.none { it.isVisible })
+        assertEquals(2, viewModel.uiState.value.completedSteps)
+    }
+
+    @Test
+    fun `without a cached membership the backend decides there is no company yet`() = runTest(mainRule.dispatcher) {
+        repository.myOrganizationResult = ApiResult.Failure(ApiError.Timeout)
+        val viewModel = GettingStartedViewModel(repository, sessionManager)
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.isVisible)
+
+        repository.myOrganizationResult = ApiResult.Success(null)
+        viewModel.retry()
+        advanceUntilIdle()
+        assertTrue(viewModel.uiState.value.isVisible)
+        assertEquals(0, viewModel.uiState.value.completedSteps)
     }
 
     // endregion
