@@ -1,3 +1,35 @@
 <resources>
     <string name="app_name">SEMS</string>
+    <string name="app_company">Energix</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_home">Inicio</string>
+    <string name="nav_monitoring">Monitoreo</string>
+    <string name="nav_alerts">Alertas</string>
+    <string name="nav_analytics">Analítica</string>
+
+    <!-- Navigation drawer -->
+    <string name="nav_devices">Mis Dispositivos</string>
+    <string name="nav_sites">Mis locales</string>
+    <string name="nav_organization">Mi Organización</string>
+    <string name="nav_reports">Reportes PDF</string>
+    <string name="nav_subscription">Suscripción</string>
+    <string name="nav_settings">Configuración</string>
+    <string name="nav_logout">Cerrar sesión</string>
+
+    <!-- Top app bar -->
+    <string name="action_open_menu">Abrir menú</string>
+    <string name="action_back">Atrás</string>
+
+    <!-- Common states -->
+    <string name="loading">Cargando…</string>
+    <string name="coming_soon_title">Próximamente</string>
+    <string name="coming_soon_body">Esta sección estará disponible pronto.</string>
+
+    <!-- Session -->
+    <string name="session_expired">Tu sesión expiró. Inicia sesión de nuevo.</string>
+
+    <!-- Login placeholder (replaced by the real screen in the iam task) -->
+    <string name="login_title">Iniciar sesión</string>
+    <string name="login_debug_enter">Entrar sin cuenta (solo debug)</string>
 </resources>
