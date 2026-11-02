@@ -48,7 +48,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import kotlinx.coroutines.launch
+import pe.edu.upc.sems.dashboard.presentation.DashboardScreen
+import pe.edu.upc.sems.organizations.presentation.organizationform.RegisterOrganizationScreen
+import pe.edu.upc.sems.organizations.presentation.siteform.SiteFormScreen
 import pe.edu.upc.sems.R
 import pe.edu.upc.sems.shared.designsystem.SemsSpacing
 import pe.edu.upc.sems.shared.designsystem.components.ComingSoonScreen
@@ -66,8 +70,10 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
     val destination = backStackEntry?.destination
     val bottomDestination = destination.bottomDestination()
     val drawerDestination = destination.drawerDestination()
+    // Forms draw their own top bar with "back" and hide the bottom bar.
+    val isFullScreenForm = destination.isRoute(RegisterOrganizationRoute) || destination.isRoute(NewSiteRoute::class)
     // Before the first destination is attached, treat the screen as top level (Home).
-    val isTopLevel = drawerDestination == null
+    val isTopLevel = drawerDestination == null && !isFullScreenForm
 
     // System back closes the open drawer instead of leaving the app.
     BackHandler(enabled = drawerState.isOpen) {
@@ -95,7 +101,7 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
     ) {
         Scaffold(
             topBar = {
-                SemsTopAppBar(
+                if (!isFullScreenForm) SemsTopAppBar(
                     title = stringResource(
                         drawerDestination?.label ?: bottomDestination?.label ?: BottomDestination.DASHBOARD.label,
                     ),
@@ -123,7 +129,12 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
                 popExitTransition = semsExitTransition(),
             ) {
                 // Bottom navigation
-                composable<DashboardRoute> { ComingSoonScreen() }
+                composable<DashboardRoute> {
+                    DashboardScreen(
+                        onRegisterCompany = { navController.navigate(RegisterOrganizationRoute) },
+                        onAddFirstSite = { organizationId -> navController.navigate(NewSiteRoute(organizationId)) },
+                    )
+                }
                 composable<MonitoringRoute> { ComingSoonScreen() }
                 composable<AlertsRoute> { ComingSoonScreen() }
                 composable<AnalyticsRoute> { ComingSoonScreen() }
@@ -133,6 +144,20 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
                 composable<ReportsRoute> { ComingSoonScreen() }
                 composable<SubscriptionRoute> { ComingSoonScreen() }
                 composable<SettingsRoute> { ComingSoonScreen() }
+                // Full-screen forms
+                composable<RegisterOrganizationRoute> {
+                    RegisterOrganizationScreen(
+                        onBack = navController::popBackStack,
+                        onRegistered = navController::popBackStack,
+                    )
+                }
+                composable<NewSiteRoute> { entry ->
+                    SiteFormScreen(
+                        organizationId = entry.toRoute<NewSiteRoute>().organizationId,
+                        onBack = navController::popBackStack,
+                        onSaved = navController::popBackStack,
+                    )
+                }
             }
         }
     }

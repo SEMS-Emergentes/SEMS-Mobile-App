@@ -134,4 +134,84 @@
     <string name="reset_error_invalid_link_title">El enlace no es válido o venció</string>
     <string name="reset_error_invalid_link_body">Pide un enlace nuevo desde \"¿Olvidaste tu contraseña?\".</string>
     <string name="reset_success">Contraseña actualizada. Inicia sesión con tu nueva contraseña.</string>
+
+    <!-- Common form texts -->
+    <string name="form_optional">Opcional</string>
+    <string name="form_error_generic_title">No se pudo guardar</string>
+    <string name="form_error_generic_body">Revisa tu conexión e inténtalo de nuevo.</string>
+    <string name="field_error_invalid_number">Ingresa un número válido.</string>
+    <string name="field_error_must_be_positive">Debe ser mayor que cero.</string>
+
+    <!-- Getting started (web: GettingStartedCard.vue) -->
+    <string name="getting_started_title">Primeros pasos</string>
+    <string name="getting_started_progress">%1$d/%2$d</string>
+    <string name="getting_started_subtitle">Tu panel se llena a medida que completas esto.</string>
+    <string name="getting_started_company_title">Registra tu empresa</string>
+    <string name="getting_started_company_detail">Razón social y RUC: es lo que identifica tus recibos.</string>
+    <string name="getting_started_site_title">Añade tu primer local</string>
+    <string name="getting_started_site_detail">La tarifa y la potencia contratada son del local, no de la empresa.</string>
+    <string name="getting_started_site_ask_admin">Pide al administrador de tu organización que agregue el primer local.</string>
+    <string name="getting_started_step_done">Completado</string>
+    <string name="getting_started_load_failed">No se pudieron cargar tus locales.</string>
+
+    <!-- Organization (web: SitesView.vue) -->
+    <string name="org_register_title">Registra tu organización</string>
+    <string name="org_legal_name_label">Razón social</string>
+    <string name="org_legal_name_placeholder">Ej: Comercial Los Andes S.A.C.</string>
+    <string name="org_trade_name_label">Nombre comercial</string>
+    <string name="org_trade_name_placeholder">Ej: Market Los Andes</string>
+    <string name="org_ruc_label">RUC</string>
+    <string name="org_ruc_hint">El RUC son 11 dígitos.</string>
+    <string name="org_business_type_label">Tipo de establecimiento</string>
+    <string name="org_register_submit">Registrar organización</string>
+    <string name="org_error_ruc_taken_title">Ese RUC ya está registrado</string>
+    <string name="org_error_ruc_taken_body">Revisa el RUC: puede estar ya en uso por otra organización.</string>
+
+    <!-- Business types (web: SitesView.vue) -->
+    <string name="business_type_supermarket">Supermercado</string>
+    <string name="business_type_convenience_store">Tienda de conveniencia</string>
+    <string name="business_type_department_store">Tienda por departamentos</string>
+    <string name="business_type_restaurant">Restaurante</string>
+    <string name="business_type_warehouse">Almacén</string>
+    <string name="business_type_other">Otro</string>
+
+    <!-- Site form (web: SiteModal.vue) -->
+    <string name="site_new_title">Nuevo local</string>
+    <string name="site_code_label">Código del local</string>
+    <string name="site_code_placeholder">Ej: LIM-001</string>
+    <string name="site_code_hint">Identifica la sede y no se puede cambiar después.</string>
+    <string name="site_name_label">Nombre</string>
+    <string name="site_name_placeholder">Ej: Miraflores</string>
+    <string name="site_address_label">Dirección</string>
+    <string name="site_address_placeholder">Ej: Av. Larco 345</string>
+    <string name="site_district_label">Distrito</string>
+    <string name="site_floor_area_label">Área (m²)</string>
+    <string name="site_floor_area_placeholder">Ej: 620</string>
+    <string name="site_contracted_power_label">Potencia contratada (kW)</string>
+    <string name="site_contracted_power_placeholder">Ej: 95</string>
+    <string name="site_tariff_label">Categoría tarifaria</string>
+    <string name="site_tariff_hint">Figura en tu recibo de luz.</string>
+    <string name="site_excludes_sundays_label">Los domingos no cuentan como hora punta</string>
+    <string name="site_excludes_sundays_hint">Solo si tu distribuidora te lo concedió.</string>
+    <string name="site_create_submit">Crear local</string>
+    <string name="site_error_code_taken_title">Ese código ya existe</string>
+    <string name="site_error_code_taken_body">Otro local de tu organización ya usa ese código. Elige uno distinto.</string>
+
+    <!-- Tariff categories (web: SiteModal.vue) -->
+    <string name="tariff_bt5b">BT5B — baja tensión, sin cargo por potencia</string>
+    <string name="tariff_bt3">BT3 — baja tensión con cargo por potencia</string>
+    <string name="tariff_bt4">BT4 — baja tensión con cargo por potencia</string>
+    <string name="tariff_mt2">MT2 — media tensión con cargo por potencia</string>
+    <string name="tariff_mt3">MT3 — media tensión con cargo por potencia</string>
+    <string name="tariff_unknown">Categoría desconocida</string>
+
+    <!-- Zone types (web: SitesView.vue) -->
+    <string name="zone_type_sales_floor">Sala de ventas</string>
+    <string name="zone_type_cold_storage">Cámaras de frío</string>
+    <string name="zone_type_warehouse">Almacén</string>
+    <string name="zone_type_kitchen">Cocina</string>
+    <string name="zone_type_offices">Oficinas</string>
+    <string name="zone_type_hvac">Climatización</string>
+    <string name="zone_type_parking">Estacionamiento</string>
+    <string name="zone_type_other">Otra</string>
 </resources>

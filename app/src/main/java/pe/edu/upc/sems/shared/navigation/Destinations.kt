@@ -44,6 +44,10 @@ enum class DrawerDestination(
 internal fun NavDestination?.isRoute(route: Any): Boolean =
     this?.hierarchy?.any { it.hasRoute(route::class) } == true
 
+/** For routes with arguments (data classes), which have no single instance to compare. */
+internal fun NavDestination?.isRoute(route: kotlin.reflect.KClass<*>): Boolean =
+    this?.hierarchy?.any { it.hasRoute(route) } == true
+
 internal fun NavDestination?.bottomDestination(): BottomDestination? =
     BottomDestination.entries.firstOrNull { isRoute(it.route) }
 

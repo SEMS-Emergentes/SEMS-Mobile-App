@@ -11,6 +11,7 @@ import pe.edu.upc.sems.organizations.domain.model.OrganizationAccess
 import pe.edu.upc.sems.organizations.domain.model.OrganizationDetails
 import pe.edu.upc.sems.organizations.domain.model.Site
 import pe.edu.upc.sems.organizations.domain.model.SiteDraft
+import pe.edu.upc.sems.organizations.domain.model.TariffCategory
 import pe.edu.upc.sems.organizations.domain.model.Zone
 import pe.edu.upc.sems.organizations.domain.model.ZoneDraft
 import pe.edu.upc.sems.organizations.domain.repository.OrganizationRepository
@@ -30,10 +31,31 @@ open class FakeOrganizationRepository : OrganizationRepository {
         return myOrganizationResult
     }
 
-    override suspend fun createOrganization(ownerUserId: String, organization: NewOrganization): ApiResult<Organization> = notConfigured
+    val createOrganizationCalls = mutableListOf<Pair<String, NewOrganization>>()
+    var createOrganizationResult: ApiResult<Organization> = ApiResult.Success(ORGANIZATION)
+
+    override suspend fun createOrganization(ownerUserId: String, organization: NewOrganization): ApiResult<Organization> {
+        createOrganizationCalls += ownerUserId to organization
+        return createOrganizationResult
+    }
+
     override suspend fun updateOrganization(organizationId: String, details: OrganizationDetails): ApiResult<Organization> = notConfigured
-    override suspend fun listSites(organizationId: String): ApiResult<List<Site>> = notConfigured
-    override suspend fun createSite(organizationId: String, site: SiteDraft): ApiResult<Site> = notConfigured
+    val listSitesCalls = mutableListOf<String>()
+    var listSitesResult: ApiResult<List<Site>> = ApiResult.Success(emptyList())
+
+    override suspend fun listSites(organizationId: String): ApiResult<List<Site>> {
+        listSitesCalls += organizationId
+        return listSitesResult
+    }
+
+    val createSiteCalls = mutableListOf<Pair<String, SiteDraft>>()
+    var createSiteResult: ApiResult<Site> = ApiResult.Success(SITE)
+
+    override suspend fun createSite(organizationId: String, site: SiteDraft): ApiResult<Site> {
+        createSiteCalls += organizationId to site
+        return createSiteResult
+    }
+
     override suspend fun updateSite(siteId: String, site: SiteDraft): ApiResult<Site> = notConfigured
     override suspend fun archiveSite(siteId: String): ApiResult<Unit> = notConfigured
     override suspend fun listZones(siteId: String): ApiResult<List<Zone>> = notConfigured
@@ -51,6 +73,21 @@ open class FakeOrganizationRepository : OrganizationRepository {
             tradeName = null,
             taxId = "20123456789",
             businessType = BusinessType.SUPERMARKET,
+            status = OrgStatus.ACTIVE,
+        )
+
+        val SITE = Site(
+            id = "site-1",
+            organizationId = "org-1",
+            siteCode = "LIM-001",
+            name = "Local San Isidro",
+            address = null,
+            district = "San Isidro",
+            floorAreaM2 = null,
+            contractedPowerKw = 95.0,
+            tariffCategory = TariffCategory.BT3,
+            chargesForDemand = true,
+            excludesSundaysFromPeak = false,
             status = OrgStatus.ACTIVE,
         )
 

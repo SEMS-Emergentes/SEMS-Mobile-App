@@ -60,3 +60,13 @@ data object SubscriptionRoute
 @Serializable
 data object SettingsRoute
 // endregion
+
+// region Main graph (logged in) — full-screen forms (own top bar, no bottom bar)
+/** "Registra tu organización" (Primeros pasos). */
+@Serializable
+data object RegisterOrganizationRoute
+
+/** "Nuevo local". */
+@Serializable
+data class NewSiteRoute(val organizationId: String)
+// endregion
