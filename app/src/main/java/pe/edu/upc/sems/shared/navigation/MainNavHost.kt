@@ -49,6 +49,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import pe.edu.upc.sems.dashboard.presentation.DashboardScreen
 import pe.edu.upc.sems.organizations.presentation.organizationform.RegisterOrganizationScreen
@@ -57,6 +60,9 @@ import pe.edu.upc.sems.organizations.presentation.sitedetail.SiteDetailScreen
 import pe.edu.upc.sems.organizations.presentation.sites.SitesScreen
 import pe.edu.upc.sems.organizations.presentation.siteform.SiteFormMode
 import pe.edu.upc.sems.organizations.presentation.siteform.SiteFormScreen
+import pe.edu.upc.sems.organizations.presentation.siteselector.SiteSelectorLabel
+import pe.edu.upc.sems.organizations.presentation.siteselector.SiteSelectorSheet
+import pe.edu.upc.sems.organizations.presentation.siteselector.SiteSelectorViewModel
 import pe.edu.upc.sems.R
 import pe.edu.upc.sems.shared.designsystem.SemsSpacing
 import pe.edu.upc.sems.shared.designsystem.components.ComingSoonScreen
@@ -82,6 +88,12 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
         destination.isRoute(SiteDetailRoute::class)
     // Before the first destination is attached, treat the screen as top level (Home).
     val isTopLevel = drawerDestination == null && !isFullScreenForm
+
+    // Active site under the title of the main screens (CLAUDE.md: always show which site the user is in).
+    val siteSelector: SiteSelectorViewModel = hiltViewModel()
+    val siteSelectorState by siteSelector.uiState.collectAsStateWithLifecycle()
+    // Back on a main screen (e.g. after creating or archiving a site in Locales): refresh the site list.
+    LaunchedEffect(isTopLevel) { if (isTopLevel) siteSelector.refresh() }
 
     // System back closes the open drawer instead of leaving the app.
     BackHandler(enabled = drawerState.isOpen) {
@@ -116,6 +128,11 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
                     showBack = !isTopLevel,
                     onMenu = { scope.launch { drawerState.open() } },
                     onBack = { navController.popBackStack() },
+                    subtitle = if (isTopLevel) {
+                        { SiteSelectorLabel(state = siteSelectorState, onClick = siteSelector::onOpen) }
+                    } else {
+                        null
+                    },
                 )
             },
             bottomBar = {
@@ -196,6 +213,14 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
             }
         }
     }
+
+    if (siteSelectorState.isSheetOpen) {
+        SiteSelectorSheet(
+            state = siteSelectorState,
+            onSelect = siteSelector::onSelect,
+            onDismiss = siteSelector::onDismiss,
+        )
+    }
 }
 
 /** Standard M3 tab behavior: one copy of each tab, state saved and restored when switching. */
@@ -221,9 +246,15 @@ private fun SemsTopAppBar(
     showBack: Boolean,
     onMenu: () -> Unit,
     onBack: () -> Unit,
+    subtitle: (@Composable () -> Unit)? = null,
 ) {
     TopAppBar(
-        title = { Text(title, style = MaterialTheme.typography.titleLarge) },
+        title = {
+            Column {
+                Text(title, style = MaterialTheme.typography.titleLarge)
+                subtitle?.invoke()
+            }
+        },
         navigationIcon = {
             if (showBack) {
                 IconButton(onClick = onBack) {

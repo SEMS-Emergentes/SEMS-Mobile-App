@@ -221,6 +221,11 @@
     <string name="zone_type_parking">Estacionamiento</string>
     <string name="zone_type_other">Otra</string>
 
+    <!-- Site selector (active site under the title of the main screens) -->
+    <string name="site_selector_title">Elegir local</string>
+    <string name="site_selector_change_description">Local activo: %1$s. Cambiar de local</string>
+    <string name="site_selector_fixed_description">Local activo: %1$s</string>
+
     <!-- Members (web: MembersCard.vue), inside "Locales", ORG_ADMIN only -->
     <string name="members_title">Quién tiene acceso</string>
     <string name="members_grant">Dar acceso</string>
