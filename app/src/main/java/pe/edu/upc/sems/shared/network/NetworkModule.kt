@@ -10,7 +10,6 @@ import javax.inject.Singleton
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import pe.edu.upc.sems.BuildConfig
 import pe.edu.upc.sems.shared.network.auth.AuthInterceptor
 import pe.edu.upc.sems.shared.network.auth.TokenAuthenticator
@@ -51,14 +50,7 @@ object NetworkModule {
         .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .writeTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .apply {
-            if (BuildConfig.DEBUG) {
-                addInterceptor(
-                    HttpLoggingInterceptor().apply {
-                        level = HttpLoggingInterceptor.Level.BODY
-                        redactHeader("Authorization")
-                    },
-                )
-            }
+            if (BuildConfig.DEBUG) addInterceptor(debugLoggingInterceptor())
         }
         .build()
 

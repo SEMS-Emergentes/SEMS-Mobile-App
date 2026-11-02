@@ -14,13 +14,13 @@ enum class BottomDestination(
     @param:DrawableRes val icon: Int,
     @param:DrawableRes val selectedIcon: Int,
 ) {
-    HOME(HomeRoute, R.string.nav_home, R.drawable.ic_home, R.drawable.ic_home_filled),
+    DASHBOARD(DashboardRoute, R.string.nav_dashboard, R.drawable.ic_home, R.drawable.ic_home_filled),
     MONITORING(MonitoringRoute, R.string.nav_monitoring, R.drawable.ic_monitoring, R.drawable.ic_monitoring_filled),
     ALERTS(AlertsRoute, R.string.nav_alerts, R.drawable.ic_notifications, R.drawable.ic_notifications_filled),
     ANALYTICS(AnalyticsRoute, R.string.nav_analytics, R.drawable.ic_analytics, R.drawable.ic_analytics_filled),
 }
 
-/** Destinations of the ModalNavigationDrawer (logout is handled separately). */
+/** Destinations of the ModalNavigationDrawer, in the web app's order (logout is handled separately). */
 enum class DrawerDestination(
     val route: Any,
     @param:StringRes val label: Int,
@@ -30,18 +30,14 @@ enum class DrawerDestination(
     val requiresOrgAdmin: Boolean = false,
 ) {
     DEVICES(DevicesRoute, R.string.nav_devices, R.drawable.ic_devices, R.drawable.ic_devices_filled),
-    SITES(SitesRoute, R.string.nav_sites, R.drawable.ic_storefront, R.drawable.ic_storefront_filled),
-    ORGANIZATION(
-        OrganizationRoute, R.string.nav_organization,
-        R.drawable.ic_corporate_fare, R.drawable.ic_corporate_fare_filled,
-        requiresOrgAdmin = true,
-    ),
     REPORTS(ReportsRoute, R.string.nav_reports, R.drawable.ic_picture_as_pdf, R.drawable.ic_picture_as_pdf_filled),
     SUBSCRIPTION(
         SubscriptionRoute, R.string.nav_subscription,
-        R.drawable.ic_workspace_premium, R.drawable.ic_workspace_premium_filled,
+        R.drawable.ic_credit_card, R.drawable.ic_credit_card_filled,
         requiresOrgAdmin = true,
     ),
+    // The organization is managed inside "Locales", as in the web app.
+    SITES(SitesRoute, R.string.nav_sites, R.drawable.ic_storefront, R.drawable.ic_storefront_filled),
     SETTINGS(SettingsRoute, R.string.nav_settings, R.drawable.ic_settings, R.drawable.ic_settings_filled),
 }
 

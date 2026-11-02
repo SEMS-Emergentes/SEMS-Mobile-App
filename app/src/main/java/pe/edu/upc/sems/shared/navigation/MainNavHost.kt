@@ -1,6 +1,15 @@
 package pe.edu.upc.sems.shared.navigation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Spacer
+import pe.edu.upc.sems.shared.designsystem.components.SemsLogoMark
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
@@ -43,7 +52,7 @@ import pe.edu.upc.sems.shared.designsystem.components.ComingSoonScreen
  * ModalNavigationDrawer for the rest. Drawer screens show "back" and hide the bottom bar.
  */
 @Composable
-fun MainNavHost(onLogout: () -> Unit) {
+fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -54,12 +63,18 @@ fun MainNavHost(onLogout: () -> Unit) {
     // Before the first destination is attached, treat the screen as top level (Home).
     val isTopLevel = drawerDestination == null
 
+    // System back closes the open drawer instead of leaving the app.
+    BackHandler(enabled = drawerState.isOpen) {
+        scope.launch { drawerState.close() }
+    }
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         // Edge swipe only on top-level screens, where the menu button is shown.
         gesturesEnabled = isTopLevel || drawerState.isOpen,
         drawerContent = {
             SemsDrawerContent(
+                account = account,
                 selected = drawerDestination,
                 onSelect = { target ->
                     scope.launch { drawerState.close() }
@@ -76,7 +91,7 @@ fun MainNavHost(onLogout: () -> Unit) {
             topBar = {
                 SemsTopAppBar(
                     title = stringResource(
-                        drawerDestination?.label ?: bottomDestination?.label ?: BottomDestination.HOME.label,
+                        drawerDestination?.label ?: bottomDestination?.label ?: BottomDestination.DASHBOARD.label,
                     ),
                     showBack = !isTopLevel,
                     onMenu = { scope.launch { drawerState.open() } },
@@ -86,7 +101,7 @@ fun MainNavHost(onLogout: () -> Unit) {
             bottomBar = {
                 if (isTopLevel) {
                     SemsNavigationBar(
-                        selected = bottomDestination ?: BottomDestination.HOME,
+                        selected = bottomDestination ?: BottomDestination.DASHBOARD,
                         onSelect = navController::navigateToBottomDestination,
                     )
                 }
@@ -94,7 +109,7 @@ fun MainNavHost(onLogout: () -> Unit) {
         ) { padding ->
             NavHost(
                 navController = navController,
-                startDestination = HomeRoute,
+                startDestination = DashboardRoute,
                 modifier = Modifier.padding(padding),
                 enterTransition = semsEnterTransition(),
                 exitTransition = semsExitTransition(),
@@ -102,14 +117,13 @@ fun MainNavHost(onLogout: () -> Unit) {
                 popExitTransition = semsExitTransition(),
             ) {
                 // Bottom navigation
-                composable<HomeRoute> { ComingSoonScreen() }
+                composable<DashboardRoute> { ComingSoonScreen() }
                 composable<MonitoringRoute> { ComingSoonScreen() }
                 composable<AlertsRoute> { ComingSoonScreen() }
                 composable<AnalyticsRoute> { ComingSoonScreen() }
                 // Drawer
                 composable<DevicesRoute> { ComingSoonScreen() }
                 composable<SitesRoute> { ComingSoonScreen() }
-                composable<OrganizationRoute> { ComingSoonScreen() }
                 composable<ReportsRoute> { ComingSoonScreen() }
                 composable<SubscriptionRoute> { ComingSoonScreen() }
                 composable<SettingsRoute> { ComingSoonScreen() }
@@ -189,45 +203,80 @@ private fun SemsNavigationBar(
 
 @Composable
 private fun SemsDrawerContent(
+    account: DrawerAccount?,
     selected: DrawerDestination?,
     onSelect: (DrawerDestination) -> Unit,
     onLogout: () -> Unit,
 ) {
     ModalDrawerSheet {
-        Spacer(Modifier.height(SemsSpacing.sm))
-        Text(
-            text = stringResource(R.string.app_name),
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(horizontal = SemsSpacing.xl, vertical = SemsSpacing.xxs),
-        )
-        Text(
-            text = stringResource(R.string.app_company),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = SemsSpacing.xl),
-        )
-        Spacer(Modifier.height(SemsSpacing.md))
-        // TODO(organizations): hide items with requiresOrgAdmin when the membership role is not ORG_ADMIN.
-        DrawerDestination.entries.forEach { item ->
-            val isSelected = item == selected
-            NavigationDrawerItem(
-                label = { Text(stringResource(item.label)) },
-                icon = {
-                    Icon(painterResource(if (isSelected) item.selectedIcon else item.icon), contentDescription = null)
-                },
-                selected = isSelected,
-                onClick = { onSelect(item) },
-                modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
-            )
+        // Header: SEMS logo and the organization (Figma v2, M06).
+        Row(
+            modifier = Modifier.padding(horizontal = SemsSpacing.lg, vertical = SemsSpacing.lg),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            SemsLogoMark()
+            Spacer(Modifier.width(SemsSpacing.sm))
+            Column {
+                Text(
+                    text = stringResource(R.string.app_name),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text = account?.organizationName ?: stringResource(R.string.drawer_no_organization),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
-        HorizontalDivider(Modifier.padding(horizontal = SemsSpacing.xl, vertical = SemsSpacing.xs))
-        NavigationDrawerItem(
-            label = { Text(stringResource(R.string.nav_logout)) },
-            icon = { Icon(painterResource(R.drawable.ic_logout), contentDescription = null) },
-            selected = false,
-            onClick = onLogout,
-            modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
-        )
+        HorizontalDivider(Modifier.padding(horizontal = SemsSpacing.lg))
+        Spacer(Modifier.height(SemsSpacing.xs))
+
+        // TODO(organizations): hide items with requiresOrgAdmin when the membership role is not ORG_ADMIN.
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState()),
+        ) {
+            DrawerDestination.entries.forEach { item ->
+                val isSelected = item == selected
+                NavigationDrawerItem(
+                    label = { Text(stringResource(item.label)) },
+                    icon = {
+                        Icon(painterResource(if (isSelected) item.selectedIcon else item.icon), contentDescription = null)
+                    },
+                    selected = isSelected,
+                    onClick = { onSelect(item) },
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
+                )
+            }
+        }
+
+        // Footer: who is logged in, with the logout action.
+        HorizontalDivider(Modifier.padding(horizontal = SemsSpacing.lg))
+        Row(
+            modifier = Modifier.padding(start = SemsSpacing.lg, end = SemsSpacing.xs, top = SemsSpacing.sm, bottom = SemsSpacing.md),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(
+                    text = account?.displayName.orEmpty(),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = stringResource(if (account?.isPlatformAdmin == true) R.string.role_admin else R.string.role_staff),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            IconButton(onClick = onLogout) {
+                Icon(painterResource(R.drawable.ic_logout), contentDescription = stringResource(R.string.nav_logout))
+            }
+        }
     }
 }

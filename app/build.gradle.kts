@@ -5,6 +5,10 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 // To point debug builds to a local backend, add this line to local.properties (not versioned):
 //   sems.api.baseUrl.debug=http://10.0.2.2:8080/api/v1/
 val productionApiBaseUrl = "https://sems-backend-kgnm.onrender.com/api/v1/"
+
+// Web app that the backend links to in its emails (service.public-base-url). Used for App Links on
+// /reset-password; they only open the app once the web team publishes /.well-known/assetlinks.json.
+val webAppHost = "sems-web-application.vercel.app"
 val localProperties = Properties().apply {
     val file = rootProject.file("local.properties")
     if (file.exists()) file.inputStream().use(::load)
@@ -33,6 +37,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "WEB_APP_URL", "\"https://$webAppHost\"")
+        manifestPlaceholders["webAppHost"] = webAppHost
     }
 
     buildTypes {
@@ -101,6 +108,7 @@ dependencies {
     // Testing
     testImplementation(libs.junit)
     testImplementation(libs.okhttp.mockwebserver) // fake HTTP server for network tests
+    testImplementation(libs.kotlinx.coroutines.test) // virtual time and Dispatchers.Main for ViewModel tests
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

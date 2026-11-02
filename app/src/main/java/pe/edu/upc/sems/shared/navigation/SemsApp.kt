@@ -20,6 +20,7 @@ import pe.edu.upc.sems.shared.designsystem.components.LoadingScreen
 fun SemsApp(viewModel: AppViewModel = hiltViewModel()) {
     val authState by viewModel.authState.collectAsStateWithLifecycle()
     val sessionExpired by viewModel.sessionExpired.collectAsStateWithLifecycle()
+    val drawerAccount by viewModel.drawerAccount.collectAsStateWithLifecycle()
     val duration = SemsMotion.duration(SemsMotion.LONG_MS)
 
     Surface(modifier = Modifier.fillMaxSize()) {
@@ -33,9 +34,8 @@ fun SemsApp(viewModel: AppViewModel = hiltViewModel()) {
                 AuthState.LoggedOut -> AuthNavHost(
                     sessionExpired = sessionExpired,
                     onSessionExpiredShown = viewModel::onSessionExpiredShown,
-                    onDebugEnter = viewModel::enterDebugSession,
                 )
-                AuthState.LoggedIn -> MainNavHost(onLogout = viewModel::logout)
+                AuthState.LoggedIn -> MainNavHost(account = drawerAccount, onLogout = viewModel::logout)
             }
         }
     }

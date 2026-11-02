@@ -2,24 +2,30 @@
     <string name="app_name">SEMS</string>
     <string name="app_company">Energix</string>
 
-    <!-- Bottom navigation -->
-    <string name="nav_home">Inicio</string>
+    <!-- Bottom navigation (same names as the web app's AppSidebar.vue) -->
+    <string name="nav_dashboard">Resumen</string>
     <string name="nav_monitoring">Monitoreo</string>
     <string name="nav_alerts">Alertas</string>
     <string name="nav_analytics">Analítica</string>
 
-    <!-- Navigation drawer -->
-    <string name="nav_devices">Mis Dispositivos</string>
-    <string name="nav_sites">Mis locales</string>
-    <string name="nav_organization">Mi Organización</string>
-    <string name="nav_reports">Reportes PDF</string>
+    <!-- Navigation drawer (same names as the web app) -->
+    <string name="nav_devices">Dispositivos</string>
+    <string name="nav_reports">Reportes</string>
     <string name="nav_subscription">Suscripción</string>
+    <string name="nav_sites">Locales</string>
     <string name="nav_settings">Configuración</string>
     <string name="nav_logout">Cerrar sesión</string>
+    <string name="drawer_no_organization">Sin organización</string>
+
+    <!-- Account roles (IAM, same labels as the web app's SettingsView.vue) -->
+    <string name="role_admin">Administrador</string>
+    <string name="role_staff">Personal del establecimiento</string>
 
     <!-- Top app bar -->
     <string name="action_open_menu">Abrir menú</string>
     <string name="action_back">Atrás</string>
+    <string name="action_retry">Reintentar</string>
+    <string name="action_close">Cerrar</string>
 
     <!-- Common states -->
     <string name="loading">Cargando…</string>
@@ -29,7 +35,97 @@
     <!-- Session -->
     <string name="session_expired">Tu sesión expiró. Inicia sesión de nuevo.</string>
 
-    <!-- Login placeholder (replaced by the real screen in the iam task) -->
-    <string name="login_title">Iniciar sesión</string>
-    <string name="login_debug_enter">Entrar sin cuenta (solo debug)</string>
+    <!-- Form validation -->
+    <string name="field_error_required">Este campo es obligatorio.</string>
+    <string name="field_error_invalid_email">Ingresa un correo válido.</string>
+    <string name="field_error_password_too_short">Usa al menos 6 caracteres.</string>
+    <string name="field_error_reset_password_too_short">Usa al menos 8 caracteres.</string>
+    <string name="field_error_passwords_do_not_match">Las contraseñas no coinciden.</string>
+    <string name="field_error_invalid_reset_link">Pega el enlace completo del correo.</string>
+    <string name="field_error_terms_required">Debes aceptar los términos para crear tu cuenta.</string>
+
+    <!-- Login (M00, M01) -->
+    <string name="login_heading">Inicia sesión</string>
+    <string name="login_subtitle">Controla el consumo y el costo de tus locales desde tu celular.</string>
+    <string name="login_email_label">Correo electrónico</string>
+    <string name="login_password_label">Contraseña</string>
+    <string name="login_show_password">Mostrar contraseña</string>
+    <string name="login_hide_password">Ocultar contraseña</string>
+    <string name="login_forgot_password">¿Olvidaste tu contraseña?</string>
+    <string name="login_submit">Ingresar</string>
+    <string name="login_connecting">Conectando…</string>
+    <string name="login_no_account">¿No tienes cuenta?</string>
+    <string name="login_create_account">Crear cuenta</string>
+    <string name="login_footer">Energix · SEMS v%1$s</string>
+    <string name="login_error_credentials_title">Correo o contraseña incorrectos</string>
+    <string name="login_error_credentials_body">Revisa tus datos o recupera tu contraseña.</string>
+    <string name="login_error_no_connection_title">Sin conexión</string>
+    <string name="login_error_no_connection_body">Revisa tu conexión a internet e intenta de nuevo.</string>
+    <string name="login_error_timeout_title">El servidor está despertando</string>
+    <string name="login_error_timeout_body">La primera conexión puede tardar hasta un minuto. Intenta de nuevo.</string>
+    <string name="login_error_generic_title">No pudimos iniciar sesión</string>
+    <string name="login_error_generic_body">Intenta de nuevo en unos momentos.</string>
+    <string name="login_error_not_verified_title">Verifica tu cuenta</string>
+    <string name="login_error_not_verified_body">Te enviamos un código a tu correo. Escríbelo para activar tu cuenta.</string>
+    <string name="login_enter_code">Ingresar código</string>
+
+    <!-- Register (M02, without the RUC: it is asked in "Primeros pasos") -->
+    <string name="register_title">Crear cuenta</string>
+    <string name="register_subtitle">Registra tu organización para empezar a medir el consumo de tus locales.</string>
+    <string name="register_full_name_label">Nombre completo</string>
+    <string name="register_password_hint">Mínimo 6 caracteres.</string>
+    <string name="register_terms">Acepto los términos y la política de privacidad</string>
+    <string name="register_submit">Crear cuenta</string>
+    <string name="register_have_account">¿Ya tienes cuenta?</string>
+    <string name="register_login">Inicia sesión</string>
+    <string name="register_error_email_taken_title">Ese correo ya tiene una cuenta</string>
+    <string name="register_error_email_taken_body">Inicia sesión o recupera tu contraseña.</string>
+    <string name="register_error_generic_title">No pudimos crear tu cuenta</string>
+
+    <!-- Verify account (fallback flow) and M29 -->
+    <string name="verify_title">Verifica tu cuenta</string>
+    <string name="verify_body">Te enviamos un código a %1$s. Escríbelo para activar tu cuenta.</string>
+    <string name="verify_body_no_email">Te enviamos un código a tu correo. Escríbelo para activar tu cuenta.</string>
+    <string name="verify_code_label">Código de verificación</string>
+    <string name="verify_submit">Verificar</string>
+    <string name="verify_error_invalid_title">El código no es válido</string>
+    <string name="verify_error_invalid_body">Revisa que esté completo o pide uno nuevo iniciando sesión otra vez.</string>
+    <string name="verify_error_generic_title">No pudimos verificar tu cuenta</string>
+    <string name="verified_title">¡Cuenta verificada!</string>
+    <string name="verified_body">Confirmamos tu correo %1$s. Ahora registra tu primer local para empezar a medir.</string>
+    <string name="verified_tip">Ten a mano tu recibo de luz: necesitas la potencia contratada y la categoría tarifaria.</string>
+    <string name="verified_continue">Continuar</string>
+
+    <!-- Forgot password (M03) -->
+    <string name="forgot_title">Recupera tu contraseña</string>
+    <string name="forgot_body">Ingresa el correo de tu cuenta y te enviaremos un enlace para crear una nueva contraseña.</string>
+    <string name="forgot_submit">Enviar enlace</string>
+    <string name="forgot_back_to_login">Volver a iniciar sesión</string>
+    <string name="password_error_generic_title">No pudimos completar la solicitud</string>
+
+    <!-- Link sent (M04). The backend link expires in 1 hour (the Figma said 30 minutes). -->
+    <string name="link_sent_title">Revisa tu correo</string>
+    <string name="link_sent_body">Enviamos un enlace a %1$s. Vence en 1 hora.</string>
+    <string name="link_sent_spam_tip">¿No lo ves? Revisa la carpeta de spam o promociones.</string>
+    <string name="link_sent_resend">Reenviar enlace</string>
+    <string name="link_sent_resend_countdown">Reenviar enlace (%1$s)</string>
+    <string name="link_sent_resent">Te enviamos un nuevo enlace.</string>
+    <string name="link_sent_have_link">Ya tengo el enlace</string>
+
+    <!-- Reset password (M30). The backend requires 8 characters here (sign-up requires 6). -->
+    <string name="reset_title">Crea una nueva contraseña</string>
+    <string name="reset_body">Para %1$s. El enlace vence en 1 hora.</string>
+    <string name="reset_body_no_email">El enlace del correo vence en 1 hora.</string>
+    <string name="reset_link_label">Enlace del correo</string>
+    <string name="reset_link_hint">Copia el enlace del correo y pégalo aquí.</string>
+    <string name="reset_new_password_label">Nueva contraseña</string>
+    <string name="reset_confirm_password_label">Confirmar contraseña</string>
+    <string name="reset_rule_min_length">%1$d caracteres o más</string>
+    <string name="reset_rule_match">Las dos contraseñas coinciden</string>
+    <string name="reset_rule_met">Cumplido</string>
+    <string name="reset_rule_not_met">Pendiente</string>
+    <string name="reset_submit">Guardar contraseña</string>
+    <string name="reset_error_invalid_link_title">El enlace no es válido o venció</string>
+    <string name="reset_error_invalid_link_body">Pide un enlace nuevo desde \"¿Olvidaste tu contraseña?\".</string>
+    <string name="reset_success">Contraseña actualizada. Inicia sesión con tu nueva contraseña.</string>
 </resources>

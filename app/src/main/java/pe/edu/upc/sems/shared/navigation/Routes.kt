@@ -7,11 +7,32 @@ import kotlinx.serialization.Serializable
 // region Access graph (logged out)
 @Serializable
 data object LoginRoute
+
+@Serializable
+data object RegisterRoute
+
+/** M03. [email] prefills the field with what was typed on the login screen. */
+@Serializable
+data class ForgotPasswordRoute(val email: String = "")
+
+/** M04. */
+@Serializable
+data class ResetLinkSentRoute(val email: String)
+
+/**
+ * M30. [token] comes with an App Link (`https://<web>/reset-password?token=…`); when null, the user pastes the link.
+ */
+@Serializable
+data class ResetPasswordRoute(val token: String? = null, val email: String? = null)
+
+/** Fallback flow when the backend requires email verification. */
+@Serializable
+data class VerifyAccountRoute(val email: String)
 // endregion
 
 // region Main graph (logged in) — bottom navigation
 @Serializable
-data object HomeRoute
+data object DashboardRoute
 
 @Serializable
 data object MonitoringRoute
@@ -29,9 +50,6 @@ data object DevicesRoute
 
 @Serializable
 data object SitesRoute
-
-@Serializable
-data object OrganizationRoute
 
 @Serializable
 data object ReportsRoute

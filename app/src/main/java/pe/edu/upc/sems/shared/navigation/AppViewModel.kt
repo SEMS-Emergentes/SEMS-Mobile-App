@@ -12,12 +12,10 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import pe.edu.upc.sems.BuildConfig
-import pe.edu.upc.sems.shared.session.AuthTokens
+import pe.edu.upc.sems.iam.domain.repository.AuthRepository
 import pe.edu.upc.sems.shared.session.SessionEvent
 import pe.edu.upc.sems.shared.session.SessionEvents
 import pe.edu.upc.sems.shared.session.SessionManager
-import pe.edu.upc.sems.shared.session.SessionUser
 
 sealed interface AuthState {
     /** Session not read from disk yet: show a loading screen, not the login (avoids a flash). */
@@ -26,17 +24,42 @@ sealed interface AuthState {
     data object LoggedIn : AuthState
 }
 
-/** App-level state: which graph to show, and the "session expired" message. */
+/**
+ * Who is logged in, for the navigation drawer header and footer.
+ * [organizationName] stays null until the organizations context exists ("Sin organización").
+ * [isPlatformAdmin] is the IAM account role (ADMIN or STAFF); it will be replaced by the
+ * membership role (Administrador, Supervisor, Operario) with organizations.
+ */
+data class DrawerAccount(
+    val displayName: String,
+    val isPlatformAdmin: Boolean,
+    val organizationName: String? = null,
+)
+
+/** App-level state: which graph to show, the drawer account and the "session expired" message. */
 @HiltViewModel
 class AppViewModel @Inject constructor(
-    private val sessionManager: SessionManager,
+    sessionManager: SessionManager,
     sessionEvents: SessionEvents,
+    private val authRepository: AuthRepository,
 ) : ViewModel() {
 
     val authState: StateFlow<AuthState> = sessionManager.session
         .map { if (it == null) AuthState.LoggedOut else AuthState.LoggedIn }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, AuthState.Loading)
+
+    val drawerAccount: StateFlow<DrawerAccount?> = sessionManager.session
+        .map { session ->
+            session?.user?.let { user ->
+                DrawerAccount(
+                    displayName = user.fullName ?: user.emailAddress,
+                    isPlatformAdmin = ADMIN_ROLE in user.roles,
+                )
+            }
+        }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val _sessionExpired = MutableStateFlow(false)
 
@@ -56,28 +79,13 @@ class AppViewModel @Inject constructor(
         _sessionExpired.value = false
     }
 
-    /** Local logout only. POST /auth/logout is added with the iam context. */
+    /** Revokes the refresh token on the backend (best effort) and clears the session. */
     fun logout() {
-        viewModelScope.launch { sessionManager.clear() }
+        viewModelScope.launch { authRepository.logout() }
     }
 
-    /**
-     * Debug-only shortcut to reach the main graph before the real login exists.
-     * Temporary: removed when the iam login screen is built.
-     */
-    fun enterDebugSession() {
-        if (!BuildConfig.DEBUG) return
-        viewModelScope.launch {
-            sessionManager.saveLogin(
-                tokens = AuthTokens(token = "debug-token", refreshToken = "debug-refresh-token"),
-                user = SessionUser(
-                    userId = "debug-user",
-                    emailAddress = "debug@sems.local",
-                    fullName = null,
-                    roles = emptySet(),
-                    segment = null,
-                ),
-            )
-        }
+    private companion object {
+        /** IAM RoleName values are ADMIN (platform administrator) and STAFF (default). */
+        const val ADMIN_ROLE = "ADMIN"
     }
 }
