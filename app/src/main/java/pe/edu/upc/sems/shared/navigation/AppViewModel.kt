@@ -66,6 +66,14 @@ class AppViewModel @Inject constructor(
     /** True until the login screen has shown the "Tu sesión expiró" message. */
     val sessionExpired: StateFlow<Boolean> = _sessionExpired.asStateFlow()
 
+    private val _pendingResetToken = MutableStateFlow<String?>(null)
+
+    /**
+     * Token of a reset-password link that opened the app, waiting to be shown once in M30.
+     * Consumed with [onResetTokenConsumed]; never restored, so a later logout always lands on the login.
+     */
+    val pendingResetToken: StateFlow<String?> = _pendingResetToken.asStateFlow()
+
     init {
         // Single collector of SessionEvents for the whole app.
         viewModelScope.launch {
@@ -73,6 +81,24 @@ class AppViewModel @Inject constructor(
                 if (event is SessionEvent.Expired) _sessionExpired.value = true
             }
         }
+        // A reset link that arrives while logged in is dropped: it must not show up after the next logout.
+        viewModelScope.launch {
+            authState.collect { state ->
+                if (state == AuthState.LoggedIn) _pendingResetToken.value = null
+            }
+        }
+    }
+
+    /** Called by MainActivity once per launch intent (not on recreation). Ignores links that are not for the app. */
+    fun onLaunchLink(link: String?) {
+        // Already logged in: drop it now (the collector in init only reacts to a change to LoggedIn,
+        // which covers a cold start where the session is still loading).
+        if (authState.value == AuthState.LoggedIn) return
+        AppLinks.resetPasswordToken(link)?.let { _pendingResetToken.value = it }
+    }
+
+    fun onResetTokenConsumed() {
+        _pendingResetToken.value = null
     }
 
     fun onSessionExpiredShown() {
