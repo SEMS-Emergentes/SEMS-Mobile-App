@@ -3,6 +3,9 @@ package pe.edu.upc.sems.shared.navigation
 import androidx.annotation.StringRes
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
@@ -18,6 +21,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -26,9 +35,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Scaffold
@@ -37,11 +44,14 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -57,6 +67,11 @@ import pe.edu.upc.sems.dashboard.presentation.DashboardScreen
 import pe.edu.upc.sems.devices.presentation.deviceform.DeviceFormMode
 import pe.edu.upc.sems.devices.presentation.deviceform.DeviceFormScreen
 import pe.edu.upc.sems.devices.presentation.devices.DevicesScreen
+import pe.edu.upc.sems.energy.presentation.meters.MeterLinkScreen
+import pe.edu.upc.sems.energy.presentation.meters.MeterHistoryScreen
+import pe.edu.upc.sems.energy.presentation.meters.MeterScannerScreen
+import pe.edu.upc.sems.energy.presentation.monitoring.MonitoringScreen
+import pe.edu.upc.sems.energy.presentation.monitoring.ConsumptionDetailScreen
 import pe.edu.upc.sems.organizations.presentation.organizationform.RegisterOrganizationScreen
 import pe.edu.upc.sems.organizations.presentation.organizationform.EditOrganizationScreen
 import pe.edu.upc.sems.organizations.presentation.sitedetail.SiteDetailScreen
@@ -88,6 +103,10 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
         destination.isRoute(EditOrganizationRoute) ||
         destination.isRoute(NewDeviceRoute) ||
         destination.isRoute(EditDeviceRoute::class) ||
+        destination.isRoute(ScanMeterRoute) ||
+        destination.isRoute(LinkMeterRoute::class) ||
+        destination.isRoute(MeterHistoryRoute::class) ||
+        destination.isRoute(ConsumptionDetailRoute::class) ||
         destination.isRoute(NewSiteRoute::class) ||
         destination.isRoute(EditSiteRoute::class) ||
         destination.isRoute(SiteDetailRoute::class)
@@ -113,9 +132,14 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
             SemsDrawerContent(
                 account = account,
                 selected = drawerDestination,
+                selectedBottom = bottomDestination,
                 onSelect = { target ->
                     scope.launch { drawerState.close() }
                     navController.navigateToDrawerDestination(target, from = drawerDestination)
+                },
+                onSelectBottom = { target ->
+                    scope.launch { drawerState.close() }
+                    navController.navigateToBottomDestination(target)
                 },
                 onLogout = {
                     scope.launch { drawerState.close() }
@@ -125,6 +149,7 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
         },
     ) {
         Scaffold(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
             topBar = {
                 if (!isFullScreenForm) SemsTopAppBar(
                     title = stringResource(
@@ -133,6 +158,9 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
                     showBack = !isTopLevel,
                     onMenu = { scope.launch { drawerState.open() } },
                     onBack = { navController.popBackStack() },
+                    onAlerts = if (isTopLevel) {
+                        { navController.navigateToBottomDestination(BottomDestination.ALERTS) }
+                    } else null,
                     subtitle = if (isTopLevel) {
                         { SiteSelectorLabel(state = siteSelectorState, onClick = siteSelector::onOpen) }
                     } else {
@@ -163,9 +191,16 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
                     DashboardScreen(
                         onRegisterCompany = { navController.navigate(RegisterOrganizationRoute) },
                         onAddFirstSite = { organizationId -> navController.navigate(NewSiteRoute(organizationId)) },
+                        onOpenMonitoring = { navController.navigateToBottomDestination(BottomDestination.MONITORING) },
                     )
                 }
-                composable<MonitoringRoute> { ComingSoonScreen() }
+                composable<MonitoringRoute> {
+                    MonitoringScreen(
+                        onLinkMeter = { navController.navigate(ScanMeterRoute) },
+                        onMeterHistory = { navController.navigate(MeterHistoryRoute(it)) },
+                        onDeviceClick = { navController.navigate(ConsumptionDetailRoute(it)) },
+                    )
+                }
                 composable<AlertsRoute> { ComingSoonScreen() }
                 composable<AnalyticsRoute> { ComingSoonScreen() }
                 // Drawer
@@ -200,6 +235,28 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
                         onBack = navController::popBackStack,
                         onSaved = navController::popBackStack,
                     )
+                }
+                composable<ScanMeterRoute> {
+                    MeterScannerScreen(
+                        onBack = navController::popBackStack,
+                        onManual = { navController.navigate(LinkMeterRoute()) },
+                        onScanned = { serial, model -> navController.navigate(LinkMeterRoute(serial, model)) },
+                    )
+                }
+                composable<LinkMeterRoute> { entry ->
+                    val route = entry.toRoute<LinkMeterRoute>()
+                    MeterLinkScreen(
+                        route.serial,
+                        route.model,
+                        navController::popBackStack,
+                        { navController.popBackStack(MonitoringRoute, false) },
+                    )
+                }
+                composable<MeterHistoryRoute> { entry ->
+                    MeterHistoryScreen(entry.toRoute<MeterHistoryRoute>().meterId, navController::popBackStack)
+                }
+                composable<ConsumptionDetailRoute> { entry ->
+                    ConsumptionDetailScreen(entry.toRoute<ConsumptionDetailRoute>().deviceId, navController::popBackStack)
                 }
                 composable<RegisterOrganizationRoute> {
                     RegisterOrganizationScreen(
@@ -270,28 +327,54 @@ private fun SemsTopAppBar(
     showBack: Boolean,
     onMenu: () -> Unit,
     onBack: () -> Unit,
+    onAlerts: (() -> Unit)? = null,
     subtitle: (@Composable () -> Unit)? = null,
 ) {
-    TopAppBar(
-        title = {
-            Column {
-                Text(title, style = MaterialTheme.typography.titleLarge)
-                subtitle?.invoke()
-            }
-        },
-        navigationIcon = {
-            if (showBack) {
-                IconButton(onClick = onBack) {
-                    Icon(painterResource(R.drawable.ic_arrow_back), stringResource(R.string.action_back))
+    Surface(shadowElevation = 3.dp, color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+        TopAppBar(
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    SemsLogoMark(size = 34.dp)
+                    Spacer(Modifier.width(SemsSpacing.sm))
+                    Column {
+                        Text(
+                            title,
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        subtitle?.invoke()
+                    }
                 }
-            } else {
-                IconButton(onClick = onMenu) {
-                    Icon(painterResource(R.drawable.ic_menu), stringResource(R.string.action_open_menu))
+            },
+            navigationIcon = {
+                IconButton(onClick = if (showBack) onBack else onMenu) {
+                    Icon(
+                        painterResource(if (showBack) R.drawable.ic_arrow_back else R.drawable.ic_menu),
+                        stringResource(if (showBack) R.string.action_back else R.string.action_open_menu),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
-            }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
-    )
+            },
+            actions = {
+                onAlerts?.let { navigate ->
+                    IconButton(
+                        onClick = navigate,
+                        modifier = Modifier.padding(end = SemsSpacing.xs)
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape),
+                    ) {
+                        Icon(
+                            painterResource(R.drawable.ic_notifications),
+                            contentDescription = stringResource(R.string.nav_alerts),
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(22.dp),
+                        )
+                    }
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest),
+        )
+    }
 }
 
 @Composable
@@ -299,25 +382,67 @@ private fun SemsNavigationBar(
     selected: BottomDestination,
     onSelect: (BottomDestination) -> Unit,
 ) {
-    NavigationBar {
-        BottomDestination.entries.forEach { item ->
-            val isSelected = item == selected
-            NavigationBarItem(
-                selected = isSelected,
-                onClick = { if (!isSelected) onSelect(item) },
-                icon = {
-                    Icon(
-                        painter = painterResource(if (isSelected) item.selectedIcon else item.icon),
-                        contentDescription = null,
+    Column(
+        Modifier.fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .navigationBarsPadding(),
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxWidth()
+                .padding(horizontal = SemsSpacing.sm, vertical = SemsSpacing.xs),
+            shape = RoundedCornerShape(22.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerLowest,
+            tonalElevation = 1.dp,
+            shadowElevation = 6.dp,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(SemsSpacing.xxs).selectableGroup(),
+                horizontalArrangement = Arrangement.spacedBy(SemsSpacing.xxs),
+            ) {
+                BottomDestination.entries.forEach { item ->
+                    val isSelected = item == selected
+                    val background by animateColorAsState(
+                        targetValue = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                        else MaterialTheme.colorScheme.surfaceContainerLowest,
+                        label = "Navigation selection",
                     )
-                },
-                label = { Text(stringResource(item.label)) },
-                // Active item in a Primary Container pill (design spec).
-                colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
-                    selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                ),
-            )
+                    val foreground by animateColorAsState(
+                        targetValue = if (isSelected) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                        label = "Navigation icon",
+                    )
+                    Column(
+                        modifier = Modifier.weight(1f)
+                            .heightIn(min = 60.dp)
+                            .clip(RoundedCornerShape(18.dp))
+                            .background(background)
+                            .selectable(
+                                selected = isSelected,
+                                onClick = { if (!isSelected) onSelect(item) },
+                                role = Role.Tab,
+                            ),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                    ) {
+                        Icon(
+                            painter = painterResource(if (isSelected) item.selectedIcon else item.icon),
+                            contentDescription = null,
+                            modifier = Modifier.size(22.dp),
+                            tint = foreground,
+                        )
+                        Spacer(Modifier.height(SemsSpacing.xxs))
+                        Text(
+                            stringResource(item.label),
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                            ),
+                            color = foreground,
+                            maxLines = 1,
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -326,16 +451,21 @@ private fun SemsNavigationBar(
 private fun SemsDrawerContent(
     account: DrawerAccount?,
     selected: DrawerDestination?,
+    selectedBottom: BottomDestination?,
     onSelect: (DrawerDestination) -> Unit,
+    onSelectBottom: (BottomDestination) -> Unit,
     onLogout: () -> Unit,
 ) {
-    ModalDrawerSheet {
+    ModalDrawerSheet(
+        drawerContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        drawerShape = RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp),
+    ) {
         // Header: SEMS logo and the organization (Figma v2, M06).
         Row(
-            modifier = Modifier.padding(horizontal = SemsSpacing.lg, vertical = SemsSpacing.lg),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = SemsSpacing.lg, vertical = SemsSpacing.lg),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            SemsLogoMark()
+            SemsLogoMark(size = 36.dp)
             Spacer(Modifier.width(SemsSpacing.sm))
             Column {
                 Text(
@@ -352,34 +482,40 @@ private fun SemsDrawerContent(
                 )
             }
         }
-        HorizontalDivider(Modifier.padding(horizontal = SemsSpacing.lg))
-        Spacer(Modifier.height(SemsSpacing.xs))
-
         Column(
             modifier = Modifier
                 .weight(1f)
+                .fillMaxWidth()
                 .verticalScroll(rememberScrollState()),
         ) {
+            BottomDestination.entries.forEach { item ->
+                SemsDrawerItem(
+                    label = stringResource(item.label),
+                    icon = if (selectedBottom == item) item.selectedIcon else item.icon,
+                    selected = selectedBottom == item,
+                    onClick = { onSelectBottom(item) },
+                )
+            }
+            Spacer(Modifier.height(SemsSpacing.sm))
+            HorizontalDivider(Modifier.fillMaxWidth().padding(horizontal = SemsSpacing.lg))
+            Spacer(Modifier.height(SemsSpacing.sm))
             DrawerDestination.entries
                 .filter { !it.requiresOrgAdmin || account?.canSeeAdminEntries == true }
                 .forEach { item ->
                 val isSelected = item == selected
-                NavigationDrawerItem(
-                    label = { Text(stringResource(item.label)) },
-                    icon = {
-                        Icon(painterResource(if (isSelected) item.selectedIcon else item.icon), contentDescription = null)
-                    },
+                SemsDrawerItem(
+                    label = stringResource(item.label),
+                    icon = if (isSelected) item.selectedIcon else item.icon,
                     selected = isSelected,
                     onClick = { onSelect(item) },
-                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
                 )
             }
         }
 
         // Footer: who is logged in, with the logout action.
-        HorizontalDivider(Modifier.padding(horizontal = SemsSpacing.lg))
+        HorizontalDivider(Modifier.fillMaxWidth().padding(horizontal = SemsSpacing.md))
         Row(
-            modifier = Modifier.padding(start = SemsSpacing.lg, end = SemsSpacing.xs, top = SemsSpacing.sm, bottom = SemsSpacing.md),
+            modifier = Modifier.fillMaxWidth().padding(start = SemsSpacing.lg, end = SemsSpacing.xs, top = SemsSpacing.md, bottom = SemsSpacing.md),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
@@ -414,6 +550,30 @@ private fun SemsDrawerContent(
             }
         }
     }
+}
+
+@Composable
+private fun SemsDrawerItem(
+    label: String,
+    icon: Int,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    NavigationDrawerItem(
+        label = { Text(label, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium)) },
+        icon = { Icon(painterResource(icon), contentDescription = null, modifier = Modifier.size(22.dp)) },
+        selected = selected,
+        onClick = onClick,
+        shape = MaterialTheme.shapes.extraLarge,
+        colors = NavigationDrawerItemDefaults.colors(
+            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+            selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            unselectedTextColor = MaterialTheme.colorScheme.onSurface,
+        ),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = SemsSpacing.sm, vertical = SemsSpacing.xxs).height(52.dp),
+    )
 }
 
 /** Membership role (as the web app's MembersCard) or, without organization, the IAM account role. */

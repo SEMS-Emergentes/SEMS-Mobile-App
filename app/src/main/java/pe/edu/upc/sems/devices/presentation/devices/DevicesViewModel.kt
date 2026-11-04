@@ -40,7 +40,10 @@ sealed interface DevicesUiState {
 
     data class Error(val error: FormError) : DevicesUiState
 
-    data class Success(val items: List<DeviceItem>) : DevicesUiState {
+    data class Success(
+        val items: List<DeviceItem>,
+        val consumptionError: FormError? = null,
+    ) : DevicesUiState {
         val siteCount: Int get() = items.map { it.device.siteId }.distinct().size
     }
 }
@@ -95,13 +98,13 @@ class DevicesViewModel @Inject constructor(
             }
 
             // Site/zone names and today's consumption only decorate the cards: if they fail, the list still shows.
-            val (names, consumptions) = coroutineScope {
+            val (names, consumptionResult) = coroutineScope {
                 val namesJob = async { loadNames(userId) }
-                val consumptionJob = async {
-                    (energy.listDeviceConsumptions(userId) as? ApiResult.Success)?.data.orEmpty()
-                }
+                val consumptionJob = async { energy.listDeviceConsumptions(userId) }
                 namesJob.await() to consumptionJob.await()
             }
+            val consumptions = (consumptionResult as? ApiResult.Success)?.data.orEmpty()
+            val consumptionError = (consumptionResult as? ApiResult.Failure)?.error?.toFormError()
             val today = LocalDate.now(LIMA)
             _uiState.value = DevicesUiState.Success(
                 deviceList.map { device ->
@@ -114,6 +117,7 @@ class DevicesViewModel @Inject constructor(
                         todayCostSoles = consumed?.second,
                     )
                 },
+                consumptionError = consumptionError,
             )
         }
     }

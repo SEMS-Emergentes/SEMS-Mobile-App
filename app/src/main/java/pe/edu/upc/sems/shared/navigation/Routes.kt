@@ -86,6 +86,22 @@ data object NewDeviceRoute
 @Serializable
 data class EditDeviceRoute(val deviceId: String)
 
+/** M08: camera scanner, followed by the meter linking form. */
+@Serializable
+data object ScanMeterRoute
+
+/** M09: links a serial manually or after scanning. */
+@Serializable
+data class LinkMeterRoute(val serial: String = "", val model: String? = null)
+
+/** Lecturas reales del medidor en el período seleccionado. */
+@Serializable
+data class MeterHistoryRoute(val meterId: String)
+
+/** M13: energy detail for one device. */
+@Serializable
+data class ConsumptionDetailRoute(val deviceId: String)
+
 /** "Editar organización" (ORG_ADMIN). */
 @Serializable
 data object EditOrganizationRoute
