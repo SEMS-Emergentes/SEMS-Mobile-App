@@ -105,6 +105,13 @@ dependencies {
     // Session / preferences
     implementation(libs.androidx.datastore.preferences)
 
+    // CameraX preview + ML Kit QR decoding for the meter linking flow.
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+    implementation(libs.mlkit.barcode.scanning)
+
     // Testing
     testImplementation(libs.junit)
     testImplementation(libs.okhttp.mockwebserver) // fake HTTP server for network tests

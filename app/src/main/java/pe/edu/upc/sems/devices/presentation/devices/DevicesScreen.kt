@@ -19,15 +19,10 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -42,39 +37,17 @@ import pe.edu.upc.sems.R
 import pe.edu.upc.sems.devices.domain.model.DeviceStatus
 import pe.edu.upc.sems.organizations.presentation.common.FormErrorBanner
 import pe.edu.upc.sems.shared.designsystem.SemsSpacing
-import pe.edu.upc.sems.shared.designsystem.components.ComingSoonScreen
 import pe.edu.upc.sems.shared.designsystem.components.LoadingScreen
 import pe.edu.upc.sems.shared.util.Formatters
 
-private const val TAB_DEVICES = 0
-private const val TAB_METERS = 1
-
-/** "Dispositivos" (M07 Equipos / M26 Medidores): two tabs, as in the web app. Meters come in their own branch. */
+/** Equipment inventory. Energy meters belong to Monitoring and are not business equipment. */
 @Composable
 fun DevicesScreen(
     onNewDevice: () -> Unit,
     onDeviceClick: (deviceId: String) -> Unit,
     viewModel: DevicesViewModel = hiltViewModel(),
 ) {
-    var tab by rememberSaveable { mutableIntStateOf(TAB_DEVICES) }
-    Column(Modifier.fillMaxSize()) {
-        PrimaryTabRow(selectedTabIndex = tab) {
-            Tab(
-                selected = tab == TAB_DEVICES,
-                onClick = { tab = TAB_DEVICES },
-                text = { Text(stringResource(R.string.devices_tab_devices)) },
-            )
-            Tab(
-                selected = tab == TAB_METERS,
-                onClick = { tab = TAB_METERS },
-                text = { Text(stringResource(R.string.devices_tab_meters)) },
-            )
-        }
-        when (tab) {
-            TAB_DEVICES -> DevicesTab(viewModel, onNewDevice, onDeviceClick)
-            else -> ComingSoonScreen()
-        }
-    }
+    DevicesTab(viewModel, onNewDevice, onDeviceClick)
 }
 
 @Composable
@@ -123,6 +96,17 @@ private fun DevicesList(state: DevicesUiState.Success, onDeviceClick: (String) -
         contentPadding = PaddingValues(start = SemsSpacing.md, end = SemsSpacing.md, top = SemsSpacing.md, bottom = 96.dp),
         verticalArrangement = Arrangement.spacedBy(SemsSpacing.sm),
     ) {
+        state.consumptionError?.let { error ->
+            item {
+                FormErrorBanner(
+                    error = error,
+                    conflictTitle = R.string.form_error_generic_title,
+                    conflictBody = R.string.form_error_generic_body,
+                    onRetry = {},
+                    offerRetry = false,
+                )
+            }
+        }
         if (state.items.isEmpty()) {
             item {
                 Text(

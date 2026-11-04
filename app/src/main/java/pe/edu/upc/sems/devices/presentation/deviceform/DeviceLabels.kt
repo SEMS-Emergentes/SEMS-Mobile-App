@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import pe.edu.upc.sems.R
 import pe.edu.upc.sems.devices.domain.model.ConnectionProtocol
+import pe.edu.upc.sems.devices.domain.model.DeviceTypes
 
 @StringRes
 fun ConnectionProtocol.label(): Int = when (this) {
@@ -16,7 +17,7 @@ fun ConnectionProtocol.label(): Int = when (this) {
 @Composable
 fun deviceTypeLabel(type: String): String {
     val label = when (type) {
-        "meter" -> R.string.device_type_meter
+        DeviceTypes.LEGACY_METER -> R.string.device_type_legacy
         "AIR_CONDITIONER" -> R.string.device_type_air_conditioner
         "REFRIGERATOR" -> R.string.device_type_refrigerator
         "WATER_HEATER" -> R.string.device_type_water_heater

@@ -54,8 +54,7 @@ class DeviceFormViewModelTest {
         assertEquals(listOf(FakeOrganizationRepository.SITE.id), state.sites.map { it.id })
         assertEquals(listOf(FakeOrganizationRepository.ZONE.id), state.zones.map { it.id })
         assertNull(state.zoneId)
-        // Same defaults as the web app.
-        assertEquals("meter", state.type)
+        assertEquals("REFRIGERATOR", state.type)
         assertEquals(ConnectionProtocol.WIFI, state.protocol)
     }
 

@@ -36,7 +36,7 @@ fun OrgFieldError.message(): Int = when (this) {
  * Errors of the organizations forms. CONFLICT is a duplicate (RUC, site code or zone name);
  * PLAN_LIMIT is the 409 of a new site when the plan's sites are used up.
  */
-enum class FormError { CONFLICT, PLAN_LIMIT, NOT_FOUND, NO_CONNECTION, TIMEOUT, GENERIC }
+enum class FormError { CONFLICT, PLAN_LIMIT, FORBIDDEN, NOT_FOUND, NO_CONNECTION, TIMEOUT, GENERIC }
 
 /** Sites included in the plan, read from the backend's 409 message. */
 data class SitePlanLimit(val planName: String, val sitesIncluded: Int)
@@ -48,7 +48,11 @@ private val PLAN_LIMIT_MESSAGE = Regex("""the (.+?) plan includes (\d+) site""",
  * "the Starter plan includes 1 site(s) and this organization already has 1; upgrade the plan to add more".
  */
 private fun ApiError.Http.isPlanLimit(): Boolean =
-    code == 409 && message != null && (PLAN_LIMIT_MESSAGE.containsMatchIn(message) || message.contains("upgrade the plan", ignoreCase = true))
+    code == 409 && message != null && (
+        PLAN_LIMIT_MESSAGE.containsMatchIn(message) ||
+            message.contains("upgrade the plan", ignoreCase = true) ||
+            (message.contains("plan", ignoreCase = true) && message.contains("limit", ignoreCase = true))
+        )
 
 /** Plan name and sites included, when the error is the plan limit and the message has them. */
 fun ApiError.sitePlanLimit(): SitePlanLimit? {
@@ -62,6 +66,7 @@ fun ApiError.toFormError(): FormError = when (this) {
     is ApiError.Http -> when {
         isPlanLimit() -> FormError.PLAN_LIMIT
         code == 409 -> FormError.CONFLICT
+        code == 403 -> FormError.FORBIDDEN
         code == 404 -> FormError.NOT_FOUND
         else -> FormError.GENERIC
     }
@@ -107,6 +112,13 @@ fun FormErrorBanner(
             modifier = modifier,
         )
         FormError.NOT_FOUND -> ErrorBanner(notFoundTitle, notFoundBody, modifier, actionLabel, onAction)
+        FormError.FORBIDDEN -> ErrorBanner(
+            R.string.form_error_forbidden_title,
+            R.string.form_error_forbidden_body,
+            modifier,
+            actionLabel,
+            onAction,
+        )
         FormError.NO_CONNECTION -> ErrorBanner(
             R.string.login_error_no_connection_title,
             R.string.login_error_no_connection_body,

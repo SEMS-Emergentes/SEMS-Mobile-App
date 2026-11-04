@@ -143,8 +143,10 @@
 
     <!-- Common form texts -->
     <string name="form_optional">Opcional</string>
-    <string name="form_error_generic_title">No se pudo guardar</string>
+    <string name="form_error_generic_title">No se pudo completar la operación</string>
     <string name="form_error_generic_body">Revisa tu conexión e inténtalo de nuevo.</string>
+    <string name="form_error_forbidden_title">Sin permisos</string>
+    <string name="form_error_forbidden_body">Tu rol no permite realizar esta operación.</string>
     <string name="field_error_invalid_number">Ingresa un número válido.</string>
     <string name="field_error_must_be_positive">Debe ser mayor que cero.</string>
 
@@ -261,7 +263,7 @@
         <item quantity="one">Alcanzaste el límite de %1$d local de tu plan %2$s. Mejora tu plan para agregar más.</item>
         <item quantity="other">Alcanzaste el límite de %1$d locales de tu plan %2$s. Mejora tu plan para agregar más.</item>
     </plurals>
-    <string name="site_error_plan_limit_body_generic">Tu plan no permite agregar más locales. Mejora tu plan para agregar más.</string>
+    <string name="site_error_plan_limit_body_generic">Se alcanzó un límite de tu plan. Revisa sus límites antes de volver a intentarlo.</string>
 
     <!-- Sites (web: SitesView.vue, Figma M27) -->
     <string name="sites_section_title">Mis locales</string>
@@ -352,7 +354,7 @@
     <string name="device_delete">Eliminar equipo</string>
     <string name="device_delete_message">Se eliminará «%1$s» y dejará de aparecer en tu lista. ¿Quieres continuar?</string>
     <string name="device_delete_confirm">Eliminar</string>
-    <string name="device_type_meter">Medidor</string>
+    <string name="device_type_legacy">Tipo heredado (revisar)</string>
     <string name="device_type_air_conditioner">Aire acondicionado</string>
     <string name="device_type_refrigerator">Refrigeradora</string>
     <string name="device_type_water_heater">Terma</string>
@@ -363,4 +365,86 @@
     <string name="device_type_sensor">Sensor</string>
     <string name="device_type_smart_plug">Enchufe inteligente</string>
     <string name="device_type_mobile">Móvil</string>
+
+    <!-- Energy meters and monitoring (M08–M13) -->
+    <string name="meters_empty">Aún no tienes medidores vinculados.</string>
+    <string name="meters_empty_detail">Vincula uno para recibir sus lecturas.</string>
+    <string name="meters_filters_empty">No hay medidores con estos filtros.</string>
+    <string name="meters_filters_empty_detail">Cambia la zona o el estado seleccionado.</string>
+    <string name="meters_filter_zone">Filtrar por zona</string>
+    <string name="meters_filter_all_zones">Todas las zonas</string>
+    <string name="meters_filter_all_statuses">Todos</string>
+    <string name="meters_link">Vincular</string>
+    <string name="meter_unassigned">Sin local ni zona asignados</string>
+    <string name="meter_status_active">Activo</string>
+    <string name="meter_status_inactive">Inactivo</string>
+    <string name="meter_status_maintenance">En mantenimiento</string>
+    <string name="meter_status_error">Con error</string>
+    <string name="meter_status_unknown">Estado no disponible</string>
+    <string name="meter_no_reading">Sin lecturas disponibles</string>
+    <string name="meter_reading_error">No se pudo consultar la última lectura.</string>
+    <string name="meter_history_open">Ver historial</string>
+    <string name="meter_history_title">Historial del medidor</string>
+    <string name="meter_history_empty">No hay lecturas de este medidor en el período.</string>
+    <string name="meter_history_power">Potencia: %1$s</string>
+    <string name="meter_history_energy">Energía: %1$s</string>
+    <string name="meter_history_no_value">Lectura sin valor de potencia o energía.</string>
+    <string name="meter_last_power">Última potencia: %1$s</string>
+    <string name="meter_last_update">Actualizado: %1$s</string>
+    <string name="meter_no_zone_short">Sin zona</string>
+    <string name="meter_zone_unavailable">Zona no disponible</string>
+    <string name="meter_change_zone">Cambiar zona</string>
+    <string name="meter_last_energy">Última energía: %1$s</string>
+    <string name="meter_unlink">Desvincular medidor</string>
+    <string name="meter_unlink_message">El medidor dejará de enviar lecturas a este local.</string>
+    <string name="meter_unlink_confirm">Desvincular</string>
+    <string name="meter_scan_title">Escanear QR</string>
+    <string name="meter_camera_explanation">Permite usar la cámara para leer el código QR del medidor.</string>
+    <string name="meter_camera_permission">Permitir cámara</string>
+    <string name="meter_enter_manually">Ingresar serial manualmente</string>
+    <string name="meter_link_title">Vincular medidor</string>
+    <string name="meter_link_intro">Vincula el medidor IoT a un local. Puedes asignarle una zona si corresponde.</string>
+    <string name="meter_serial_label">Serial del medidor</string>
+    <string name="meter_model_label">Modelo (opcional)</string>
+    <string name="meter_site_label">Local</string>
+    <string name="meter_zone_label">Zona</string>
+    <string name="meter_no_zones">Puedes vincular el medidor sin asignarle una zona.</string>
+    <string name="meter_no_zone_option">Sin zona (opcional)</string>
+    <string name="meter_no_sites">Necesitas acceso a un local para vincular un medidor.</string>
+    <string name="meter_invalid_serial">Ingresa un serial válido (letras, números, punto, guion, guion bajo o dos puntos).</string>
+    <string name="meter_link_submit">Vincular medidor</string>
+    <string name="meter_link_error_title">No se pudo vincular el medidor</string>
+    <string name="meter_link_error_body">Revisa la conexión y vuelve a intentarlo.</string>
+    <string name="monitoring_by_device">Por equipo</string>
+    <string name="monitoring_empty">No hay equipos en el local activo.</string>
+    <string name="monitoring_detail_title">Detalle de consumo</string>
+    <string name="monitoring_device_unknown">Equipo no encontrado</string>
+    <string name="monitoring_no_readings">No hay lecturas de consumo para este equipo.</string>
+    <string name="monitoring_history_unavailable">El historial por períodos estará disponible cuando el backend entregue lecturas por equipo.</string>
+    <string name="monitoring_meters_title">Medidores del local</string>
+    <string name="monitoring_meters_description">Medidores IoT vinculados al local y, opcionalmente, a una zona.</string>
+    <string name="monitoring_site_context">Datos de %1$s</string>
+    <string name="monitoring_select_site">Selecciona un local para consultar su monitoreo.</string>
+    <string name="monitoring_by_zone">Consumo por zona</string>
+    <string name="monitoring_days">%1$d días</string>
+    <string name="monitoring_zone_empty">No hay consumo medido en este período.</string>
+    <string name="monitoring_period_total">Consumo del período: %1$s</string>
+    <string name="monitoring_meter_count">%1$d medidores</string>
+    <string name="monitoring_equipment_with_readings">Equipos con lecturas atribuidas</string>
+    <string name="monitoring_equipment_explanation">Aquí aparecen los equipos que cuentan con lecturas propias.</string>
+    <string name="monitoring_equipment_empty">Aún no hay lecturas propias de equipos en este local.</string>
+    <string name="monitoring_reading_error">No se pudo consultar la lectura.</string>
+    <string name="dashboard_select_site">Selecciona un local para ver su resumen energético.</string>
+    <string name="dashboard_greeting">Resumen de %1$s</string>
+    <string name="dashboard_period_note">Datos oficiales de los últimos 30 días.</string>
+    <string name="dashboard_consumption">Consumo</string>
+    <string name="dashboard_backend_cost">Costo estimado</string>
+    <string name="dashboard_meters">Medidores vinculados</string>
+    <string name="dashboard_demand">Demanda</string>
+    <string name="dashboard_demand_unavailable">Aún no hay datos de demanda para este local.</string>
+    <string name="dashboard_no_meters_title">Comienza a medir tu local</string>
+    <string name="dashboard_no_meters_body">Vincula un medidor en Monitoreo para consultar sus lecturas.</string>
+    <string name="dashboard_open_monitoring">Ir a Monitoreo</string>
+    <string name="value_unavailable">No disponible</string>
+    <string name="action_refresh">Actualizar</string>
 </resources>

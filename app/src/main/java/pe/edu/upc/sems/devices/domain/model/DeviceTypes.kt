@@ -5,14 +5,18 @@ package pe.edu.upc.sems.devices.domain.model
  * (DeviceModal.vue), so a device created on one client looks the same on the other.
  */
 object DeviceTypes {
-    const val DEFAULT = "meter"
+    const val LEGACY_METER = "meter"
+    const val DEFAULT = "REFRIGERATOR"
 
     val all: List<String> = listOf(
-        "meter", "AIR_CONDITIONER", "REFRIGERATOR", "WATER_HEATER", "TV",
+        "AIR_CONDITIONER", "REFRIGERATOR", "WATER_HEATER", "TV",
         "WASHING_MACHINE", "MICROWAVE", "THERMOSTAT", "SENSOR", "smart_plug", "Mobile",
     )
 
-    /** Options for the form: the standard ones plus [current] when a device has another value. */
+    /**
+     * New equipment never offers the legacy `meter` type. An existing record keeps its raw type
+     * in the edit selector so opening and saving it does not silently rewrite backend data.
+     */
     fun optionsFor(current: String?): List<String> =
         if (current.isNullOrBlank() || current in all) all else all + current
 }
