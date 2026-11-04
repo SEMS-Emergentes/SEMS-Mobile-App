@@ -305,4 +305,62 @@
     <string name="zone_archive">Archivar zona</string>
     <string name="zone_error_name_taken_title">Esa zona ya existe</string>
     <string name="zone_error_name_taken_body">Otra zona de este local ya tiene ese nombre.</string>
+
+    <!-- Devices: Equipos tab (Figma M07, web: DevicesView.vue) -->
+    <string name="devices_tab_devices">Equipos</string>
+    <string name="devices_tab_meters">Medidores</string>
+    <string name="devices_summary">%1$s · %2$s</string>
+    <plurals name="devices_count">
+        <item quantity="one">%1$d equipo</item>
+        <item quantity="other">%1$d equipos</item>
+    </plurals>
+    <string name="devices_empty">Aún no tienes equipos registrados.</string>
+    <string name="devices_kwh_today">%1$s hoy</string>
+    <string name="devices_no_reading">—</string>
+    <string name="device_status_on">Encendido</string>
+    <string name="device_status_no_signal">Sin señal</string>
+    <string name="device_status_off">Apagado</string>
+    <string name="devices_add">Agregar equipo</string>
+
+    <!-- Devices: add / edit form (web: DeviceModal.vue). Only fields the backend stores. -->
+    <string name="device_new_title">Agregar equipo</string>
+    <string name="device_edit_title">Editar equipo</string>
+    <string name="device_form_intro">Registra un equipo de tu local para seguir su consumo.</string>
+    <string name="device_no_sites">Para agregar un equipo primero necesitas un local. Créalo en la sección Locales.</string>
+    <string name="device_name_label">Nombre del equipo</string>
+    <string name="device_name_placeholder">Ej: Cámaras de frío</string>
+    <string name="device_site_label">Local</string>
+    <string name="device_site_locked">Un equipo no cambia de local.</string>
+    <string name="device_zone_label">Zona</string>
+    <string name="device_zone_unassigned">Sin asignar</string>
+    <string name="device_zone_none_available">Este local aún no tiene zonas</string>
+    <string name="device_type_label">Tipo</string>
+    <string name="device_connection_label">Conexión</string>
+    <string name="device_connection_wifi">Wi-Fi</string>
+    <string name="device_connection_bluetooth">Bluetooth</string>
+    <string name="device_brand_label">Marca</string>
+    <string name="device_brand_placeholder">Ej: Carrier</string>
+    <string name="device_model_label">Modelo</string>
+    <string name="device_model_placeholder">Ej: EM100</string>
+    <string name="device_code_label">Código externo</string>
+    <string name="device_code_placeholder">Ej: MED-001</string>
+    <string name="device_code_hint">Identifica el equipo y no se puede cambiar después.</string>
+    <string name="device_code_locked">El código externo no se puede cambiar.</string>
+    <string name="device_create_submit">Agregar equipo</string>
+    <string name="device_error_code_taken_title">Ese código ya existe</string>
+    <string name="device_error_code_taken_body">Otro equipo ya usa ese código externo. Usa uno distinto.</string>
+    <string name="device_delete">Eliminar equipo</string>
+    <string name="device_delete_message">Se eliminará «%1$s» y dejará de aparecer en tu lista. ¿Quieres continuar?</string>
+    <string name="device_delete_confirm">Eliminar</string>
+    <string name="device_type_meter">Medidor</string>
+    <string name="device_type_air_conditioner">Aire acondicionado</string>
+    <string name="device_type_refrigerator">Refrigeradora</string>
+    <string name="device_type_water_heater">Terma</string>
+    <string name="device_type_tv">Televisor</string>
+    <string name="device_type_washing_machine">Lavadora</string>
+    <string name="device_type_microwave">Microondas</string>
+    <string name="device_type_thermostat">Termostato</string>
+    <string name="device_type_sensor">Sensor</string>
+    <string name="device_type_smart_plug">Enchufe inteligente</string>
+    <string name="device_type_mobile">Móvil</string>
 </resources>

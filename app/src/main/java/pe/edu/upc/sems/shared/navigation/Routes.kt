@@ -78,6 +78,14 @@ data class SiteDetailRoute(val siteId: String)
 @Serializable
 data class EditSiteRoute(val siteId: String)
 
+/** "Agregar equipo". */
+@Serializable
+data object NewDeviceRoute
+
+/** "Editar equipo". */
+@Serializable
+data class EditDeviceRoute(val deviceId: String)
+
 /** "Editar organización" (ORG_ADMIN). */
 @Serializable
 data object EditOrganizationRoute

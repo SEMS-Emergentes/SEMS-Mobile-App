@@ -54,6 +54,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import pe.edu.upc.sems.dashboard.presentation.DashboardScreen
+import pe.edu.upc.sems.devices.presentation.deviceform.DeviceFormMode
+import pe.edu.upc.sems.devices.presentation.deviceform.DeviceFormScreen
+import pe.edu.upc.sems.devices.presentation.devices.DevicesScreen
 import pe.edu.upc.sems.organizations.presentation.organizationform.RegisterOrganizationScreen
 import pe.edu.upc.sems.organizations.presentation.organizationform.EditOrganizationScreen
 import pe.edu.upc.sems.organizations.presentation.sitedetail.SiteDetailScreen
@@ -83,6 +86,8 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
     // Forms draw their own top bar with "back" and hide the bottom bar.
     val isFullScreenForm = destination.isRoute(RegisterOrganizationRoute) ||
         destination.isRoute(EditOrganizationRoute) ||
+        destination.isRoute(NewDeviceRoute) ||
+        destination.isRoute(EditDeviceRoute::class) ||
         destination.isRoute(NewSiteRoute::class) ||
         destination.isRoute(EditSiteRoute::class) ||
         destination.isRoute(SiteDetailRoute::class)
@@ -164,7 +169,12 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
                 composable<AlertsRoute> { ComingSoonScreen() }
                 composable<AnalyticsRoute> { ComingSoonScreen() }
                 // Drawer
-                composable<DevicesRoute> { ComingSoonScreen() }
+                composable<DevicesRoute> {
+                    DevicesScreen(
+                        onNewDevice = { navController.navigate(NewDeviceRoute) },
+                        onDeviceClick = { deviceId -> navController.navigate(EditDeviceRoute(deviceId)) },
+                    )
+                }
                 composable<SitesRoute> {
                     SitesScreen(
                         onSiteClick = { siteId -> navController.navigate(SiteDetailRoute(siteId)) },
@@ -177,6 +187,20 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
                 composable<SubscriptionRoute> { ComingSoonScreen() }
                 composable<SettingsRoute> { ComingSoonScreen() }
                 // Full-screen forms
+                composable<NewDeviceRoute> {
+                    DeviceFormScreen(
+                        mode = DeviceFormMode.Create,
+                        onBack = navController::popBackStack,
+                        onSaved = navController::popBackStack,
+                    )
+                }
+                composable<EditDeviceRoute> { entry ->
+                    DeviceFormScreen(
+                        mode = DeviceFormMode.Edit(entry.toRoute<EditDeviceRoute>().deviceId),
+                        onBack = navController::popBackStack,
+                        onSaved = navController::popBackStack,
+                    )
+                }
                 composable<RegisterOrganizationRoute> {
                     RegisterOrganizationScreen(
                         onBack = navController::popBackStack,
