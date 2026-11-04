@@ -27,6 +27,13 @@ object Formatters {
     /** `95 kW`, `95,5 kW`, `1 250 kW`. */
     fun kilowatts(value: Double): String = "${decimalFormat(2).format(value)}${NBSP}kW"
 
+    /** `118 kWh`, `4 820 kWh`, `12,4 kWh`. */
+    fun kilowattHours(value: Double): String = "${decimalFormat(1).format(value)}${NBSP}kWh"
+
+    /** `S/ 52,40`, `S/ 3 412,50`: soles always with two decimals. */
+    fun soles(value: Double): String =
+        "S/$NBSP${decimalFormat(2).apply { minimumFractionDigits = 2 }.format(value)}"
+
     /** `600 m²`. */
     fun squareMeters(value: Double): String = "${decimalFormat(1).format(value)}${NBSP}m²"
 
