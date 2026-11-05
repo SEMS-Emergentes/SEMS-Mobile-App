@@ -38,6 +38,8 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Surface
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -50,7 +52,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -63,6 +68,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import kotlinx.coroutines.launch
+import pe.edu.upc.sems.alerts.presentation.alerts.AlertsScreen
+import pe.edu.upc.sems.alerts.presentation.badge.AlertBadgeViewModel
 import pe.edu.upc.sems.dashboard.presentation.DashboardScreen
 import pe.edu.upc.sems.devices.presentation.deviceform.DeviceFormMode
 import pe.edu.upc.sems.devices.presentation.deviceform.DeviceFormScreen
@@ -119,6 +126,11 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
     // Back on a main screen (e.g. after creating or archiving a site in Locales): refresh the site list.
     LaunchedEffect(isTopLevel) { if (isTopLevel) siteSelector.refresh() }
 
+    // Number of active alerts, on the Alertas item of the bottom bar.
+    val alertBadge: AlertBadgeViewModel = hiltViewModel()
+    val activeAlerts by alertBadge.count.collectAsStateWithLifecycle()
+    LaunchedEffect(isTopLevel) { if (isTopLevel) alertBadge.refresh() }
+
     // System back closes the open drawer instead of leaving the app.
     BackHandler(enabled = drawerState.isOpen) {
         scope.launch { drawerState.close() }
@@ -173,6 +185,7 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
                     SemsNavigationBar(
                         selected = bottomDestination ?: BottomDestination.DASHBOARD,
                         onSelect = navController::navigateToBottomDestination,
+                        activeAlerts = activeAlerts,
                     )
                 }
             },
@@ -201,7 +214,9 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
                         onDeviceClick = { navController.navigate(ConsumptionDetailRoute(it)) },
                     )
                 }
-                composable<AlertsRoute> { ComingSoonScreen() }
+                composable<AlertsRoute> {
+                    AlertsScreen(onViewSite = { siteId -> navController.navigate(SiteDetailRoute(siteId)) })
+                }
                 composable<AnalyticsRoute> { ComingSoonScreen() }
                 // Drawer
                 composable<DevicesRoute> {
@@ -381,6 +396,7 @@ private fun SemsTopAppBar(
 private fun SemsNavigationBar(
     selected: BottomDestination,
     onSelect: (BottomDestination) -> Unit,
+    activeAlerts: Int = 0,
 ) {
     Column(
         Modifier.fillMaxWidth()
@@ -425,12 +441,32 @@ private fun SemsNavigationBar(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center,
                     ) {
-                        Icon(
-                            painter = painterResource(if (isSelected) item.selectedIcon else item.icon),
-                            contentDescription = null,
-                            modifier = Modifier.size(22.dp),
-                            tint = foreground,
-                        )
+                        val showBadge = item == BottomDestination.ALERTS && activeAlerts > 0
+                        val badgeDescription = pluralStringResource(R.plurals.alerts_badge_description, activeAlerts, activeAlerts)
+                        BadgedBox(
+                            badge = {
+                                if (showBadge) {
+                                    Badge(
+                                        containerColor = MaterialTheme.colorScheme.error,
+                                        contentColor = MaterialTheme.colorScheme.onError,
+                                    ) { Text(if (activeAlerts > 99) "99+" else activeAlerts.toString()) }
+                                }
+                            },
+                            modifier = if (showBadge) {
+                                Modifier.semantics {
+                                    contentDescription = badgeDescription
+                                }
+                            } else {
+                                Modifier
+                            },
+                        ) {
+                            Icon(
+                                painter = painterResource(if (isSelected) item.selectedIcon else item.icon),
+                                contentDescription = null,
+                                modifier = Modifier.size(22.dp),
+                                tint = foreground,
+                            )
+                        }
                         Spacer(Modifier.height(SemsSpacing.xxs))
                         Text(
                             stringResource(item.label),
