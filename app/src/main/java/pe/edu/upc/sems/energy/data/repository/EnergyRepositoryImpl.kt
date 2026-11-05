@@ -69,6 +69,17 @@ class EnergyRepositoryImpl @Inject constructor(
 
     override suspend fun siteZoneConsumption(siteId: String, days: Int): ApiResult<SiteZoneConsumption> =
         safeApiCall { service.siteZoneConsumption(siteId, days) }.map { it.toDomain() }
+
+    override suspend fun siteComparison(organizationId: String, days: Int): ApiResult<List<pe.edu.upc.sems.energy.domain.model.SiteConsumption>> =
+        safeApiCall { service.siteComparison(organizationId, days) }.map { response -> response.sites.map { it.toDomain() } }
+
+    override suspend fun userReadingsInRange(
+        userId: String,
+        from: java.time.Instant,
+        to: java.time.Instant,
+    ): ApiResult<List<EnergyReading>> = safeApiCall {
+        service.readingsByRange(userId, from.toString(), to.toString())
+    }.map { readings -> readings.map { it.toDomain() } }
 }
 
 /** An explicit JSON null is required to remove a zone, even with Json.explicitNulls=false. */
