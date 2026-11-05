@@ -480,6 +480,24 @@
     <string name="alert_time_days">hace %1$d d</string>
     <string name="alert_time_today">hoy %1$s</string>
     <string name="alert_time_yesterday">ayer %1$s</string>
+    <!-- Consumption detail (Figma M13) -->
+    <string name="consumption_period_today">Hoy</string>
+    <string name="consumption_period_week">7 días</string>
+    <string name="consumption_period_month">30 días</string>
+    <string name="consumption_card_energy">Consumo</string>
+    <string name="consumption_card_cost">Costo</string>
+    <string name="consumption_card_peak">Pico</string>
+    <string name="consumption_caption_today">hoy</string>
+    <string name="consumption_caption_week">7 días</string>
+    <string name="consumption_caption_month">30 días</string>
+    <string name="unit_kwh">kWh</string>
+    <string name="unit_kw">kW</string>
+    <string name="consumption_chart_power">Potencia por hora</string>
+    <string name="consumption_chart_energy">Consumo por día</string>
+    <string name="consumption_chart_description">%1$s, en %2$s</string>
+    <string name="consumption_today">Hoy</string>
+    <string name="consumption_recent">Lecturas recientes</string>
+    <string name="consumption_empty">No hay lecturas de este equipo en el período.</string>
     <plurals name="alerts_badge_description">
         <item quantity="one">%1$d alerta activa</item>
         <item quantity="other">%1$d alertas activas</item>

@@ -78,7 +78,7 @@ import pe.edu.upc.sems.energy.presentation.meters.MeterLinkScreen
 import pe.edu.upc.sems.energy.presentation.meters.MeterHistoryScreen
 import pe.edu.upc.sems.energy.presentation.meters.MeterScannerScreen
 import pe.edu.upc.sems.energy.presentation.monitoring.MonitoringScreen
-import pe.edu.upc.sems.energy.presentation.monitoring.ConsumptionDetailScreen
+import pe.edu.upc.sems.energy.presentation.consumption.ConsumptionDetailScreen
 import pe.edu.upc.sems.organizations.presentation.organizationform.RegisterOrganizationScreen
 import pe.edu.upc.sems.organizations.presentation.organizationform.EditOrganizationScreen
 import pe.edu.upc.sems.organizations.presentation.sitedetail.SiteDetailScreen

@@ -14,6 +14,7 @@ import pe.edu.upc.sems.energy.data.remote.EnergyService
 import pe.edu.upc.sems.energy.domain.model.DeviceConsumption
 import pe.edu.upc.sems.energy.domain.model.SiteZoneConsumption
 import pe.edu.upc.sems.energy.domain.repository.EnergyRepository
+import pe.edu.upc.sems.shared.network.ApiError
 import pe.edu.upc.sems.shared.network.ApiResult
 import pe.edu.upc.sems.shared.network.map
 import pe.edu.upc.sems.shared.network.safeApiCall
@@ -40,7 +41,7 @@ class EnergyRepositoryImpl @Inject constructor(
     override suspend fun deactivateMeter(meterId: String): ApiResult<Unit> = safeApiCall { service.deactivateMeter(meterId) }
     override suspend fun deleteMeter(meterId: String): ApiResult<Unit> = safeApiCall { service.deleteMeter(meterId) }
     override suspend fun latestMeterReading(meterId: String): ApiResult<EnergyReading?> =
-        safeApiCall { service.latestMeterReading(meterId) }.map { it?.toDomain() }
+        safeApiCall { service.latestMeterReading(meterId) }.map { it?.toDomain() }.noReadingsIfNotFound()
 
     override suspend fun meterReadingHistory(
         userId: String,
@@ -51,8 +52,17 @@ class EnergyRepositoryImpl @Inject constructor(
         service.readingsByRange(userId, from.toString(), to.toString())
     }.map { readings -> readings.filter { it.meterId == meterId }.map { it.toDomain() } }
 
+    override suspend fun deviceReadingsInRange(
+        userId: String,
+        deviceId: String,
+        from: java.time.Instant,
+        to: java.time.Instant,
+    ): ApiResult<List<EnergyReading>> = safeApiCall {
+        service.readingsByRange(userId, from.toString(), to.toString())
+    }.map { readings -> readings.filter { it.deviceId == deviceId }.map { it.toDomain() } }
+
     override suspend fun currentDeviceReading(deviceId: String): ApiResult<EnergyReading?> =
-        safeApiCall { service.currentDeviceReading(deviceId) }.map { it?.toDomain() }
+        safeApiCall { service.currentDeviceReading(deviceId) }.map { it?.toDomain() }.noReadingsIfNotFound()
 
     override suspend fun deviceReadingHistory(deviceId: String, limit: Int): ApiResult<List<EnergyReading>> =
         safeApiCall { service.deviceReadingHistory(deviceId, limit) }.map { list -> list.map { it.toDomain() } }
@@ -65,3 +75,10 @@ class EnergyRepositoryImpl @Inject constructor(
 internal fun meterZoneBody(zoneId: String?): JsonObject = buildJsonObject {
     put("zone_id", zoneId?.let(::JsonPrimitive) ?: JsonNull)
 }
+
+/**
+ * The backend answers 404 ("No readings found...") when a meter or a device has not reported yet. That is
+ * not a failure: it just has nothing to show, so the screens say "sin lecturas" instead of an error.
+ */
+internal fun ApiResult<EnergyReading?>.noReadingsIfNotFound(): ApiResult<EnergyReading?> =
+    if (this is ApiResult.Failure && error is ApiError.Http && error.code == 404) ApiResult.Success(null) else this

@@ -95,6 +95,7 @@ class MeterLinkViewModelTest {
         override suspend fun deleteMeter(meterId: String): ApiResult<Unit> = error("unused")
         override suspend fun latestMeterReading(meterId: String): ApiResult<EnergyReading?> = error("unused")
         override suspend fun meterReadingHistory(userId: String, meterId: String, from: java.time.Instant, to: java.time.Instant): ApiResult<List<EnergyReading>> = error("unused")
+        override suspend fun deviceReadingsInRange(userId: String, deviceId: String, from: java.time.Instant, to: java.time.Instant): ApiResult<List<EnergyReading>> = error("unused")
         override suspend fun currentDeviceReading(deviceId: String): ApiResult<EnergyReading?> = error("unused")
         override suspend fun deviceReadingHistory(deviceId: String, limit: Int): ApiResult<List<EnergyReading>> = error("unused")
         override suspend fun siteZoneConsumption(siteId: String, days: Int): ApiResult<SiteZoneConsumption> = error("unused")
