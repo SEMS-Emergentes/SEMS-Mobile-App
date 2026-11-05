@@ -18,6 +18,8 @@ interface EnergyRepository {
     suspend fun deleteMeter(meterId: String): ApiResult<Unit>
     suspend fun latestMeterReading(meterId: String): ApiResult<EnergyReading?>
     suspend fun meterReadingHistory(userId: String, meterId: String, from: Instant, to: Instant): ApiResult<List<EnergyReading>>
+    /** Readings of one device in a period (the backend filters by user and range; the device is picked here). */
+    suspend fun deviceReadingsInRange(userId: String, deviceId: String, from: Instant, to: Instant): ApiResult<List<EnergyReading>>
     suspend fun currentDeviceReading(deviceId: String): ApiResult<EnergyReading?>
     suspend fun deviceReadingHistory(deviceId: String, limit: Int = 50): ApiResult<List<EnergyReading>>
     suspend fun siteZoneConsumption(siteId: String, days: Int): ApiResult<SiteZoneConsumption>

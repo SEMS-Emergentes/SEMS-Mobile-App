@@ -27,6 +27,9 @@ object Formatters {
     /** `95 kW`, `95,5 kW`, `1 250 kW`. */
     fun kilowatts(value: Double): String = "${decimalFormat(2).format(value)}${NBSP}kW"
 
+    /** A number alone, for cards that show the unit apart: `118`, `6,1`, `4 820`. */
+    fun quantity(value: Double, maxFractionDigits: Int = 1): String = decimalFormat(maxFractionDigits).format(value)
+
     /** `118 kWh`, `4 820 kWh`, `12,4 kWh`. */
     fun kilowattHours(value: Double): String = "${decimalFormat(1).format(value)}${NBSP}kWh"
 

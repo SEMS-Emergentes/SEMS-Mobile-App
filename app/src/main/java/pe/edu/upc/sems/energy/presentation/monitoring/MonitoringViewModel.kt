@@ -46,13 +46,6 @@ sealed interface MonitoringUiState {
     data class Success(val content: MonitoringContent) : MonitoringUiState
 }
 
-sealed interface HistoryUiState {
-    data object Idle : HistoryUiState
-    data object Loading : HistoryUiState
-    data class Error(val error: FormError) : HistoryUiState
-    data class Success(val readings: List<EnergyReading>) : HistoryUiState
-}
-
 @HiltViewModel
 class MonitoringViewModel @Inject constructor(
     private val devices: DeviceRepository,
@@ -61,9 +54,6 @@ class MonitoringViewModel @Inject constructor(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<MonitoringUiState>(MonitoringUiState.Loading)
     val uiState: StateFlow<MonitoringUiState> = _uiState.asStateFlow()
-
-    private val _history = MutableStateFlow<HistoryUiState>(HistoryUiState.Idle)
-    val history: StateFlow<HistoryUiState> = _history.asStateFlow()
 
     fun selectDays(days: Int) {
         if (days !in setOf(7, 14, 30)) return
@@ -125,14 +115,4 @@ class MonitoringViewModel @Inject constructor(
                 ),
             )
         }
-
-    fun loadHistory(deviceId: String) = viewModelScope.launch {
-        _history.value = HistoryUiState.Loading
-        _history.value = when (val result = energy.deviceReadingHistory(deviceId, limit = 50)) {
-            is ApiResult.Success -> HistoryUiState.Success(
-                result.data.sortedByDescending { it.measuredAt },
-            )
-            is ApiResult.Failure -> HistoryUiState.Error(result.error.toFormError())
-        }
-    }
 }

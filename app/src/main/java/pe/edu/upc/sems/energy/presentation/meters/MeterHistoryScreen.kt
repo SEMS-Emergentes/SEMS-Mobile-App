@@ -34,6 +34,8 @@ import kotlinx.coroutines.launch
 import pe.edu.upc.sems.R
 import pe.edu.upc.sems.energy.domain.model.EnergyReading
 import pe.edu.upc.sems.energy.domain.repository.EnergyRepository
+import pe.edu.upc.sems.energy.presentation.consumption.dailyEnergy
+import pe.edu.upc.sems.shared.designsystem.components.BarChart
 import pe.edu.upc.sems.organizations.presentation.common.FormError
 import pe.edu.upc.sems.organizations.presentation.common.FormErrorBanner
 import pe.edu.upc.sems.organizations.presentation.common.FormScaffold
@@ -129,6 +131,7 @@ fun MeterHistoryScreen(
                 if (value.readings.isEmpty()) {
                     Text(stringResource(R.string.meter_history_empty), style = MaterialTheme.typography.bodyMedium)
                 } else {
+                    MeterEnergyChart(value.readings, value.days)
                     value.readings.forEach { reading ->
                         OutlinedCard(Modifier.fillMaxWidth()) {
                             Column(Modifier.padding(SemsSpacing.md), verticalArrangement = Arrangement.spacedBy(SemsSpacing.xs)) {
@@ -153,6 +156,29 @@ fun MeterHistoryScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+/** kWh the meter reported on each day of the period, as the backend sent them (adds up `energy_kwh`). */
+@Composable
+private fun MeterEnergyChart(readings: List<EnergyReading>, days: Int) {
+    val bars = androidx.compose.runtime.remember(readings, days) { dailyEnergy(readings, days, Instant.now()) }
+    val first = Instant.now().atZone(ZoneId.of("America/Lima")).toLocalDate().minusDays((days - 1).toLong())
+    val title = stringResource(R.string.consumption_chart_energy)
+    val unit = stringResource(R.string.unit_kwh)
+    OutlinedCard(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(SemsSpacing.md)) {
+            Row {
+                Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                Text(unit, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            BarChart(
+                values = bars,
+                xLabels = listOf(DateTimeFormatter.ofPattern("dd/MM").format(first), stringResource(R.string.consumption_today)),
+                description = stringResource(R.string.consumption_chart_description, title, unit),
+                modifier = Modifier.padding(top = SemsSpacing.md),
+            )
         }
     }
 }
