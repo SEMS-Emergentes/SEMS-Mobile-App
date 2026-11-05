@@ -66,3 +66,19 @@ data class ZoneShareDto(
     @SerialName("share_percent") val sharePercent: Double? = null,
     @SerialName("estimated_energy_cost") val estimatedEnergyCost: Double? = null,
 )
+
+/** `GET /organizations/{id}/site-consumption`: one entry per active site (OpenAPI SiteComparisonResponse). */
+@Serializable
+data class SiteComparisonDto(
+    val sites: List<SiteShareDto> = emptyList(),
+)
+
+@Serializable
+data class SiteShareDto(
+    @SerialName("site_id") val siteId: String,
+    @SerialName("meter_count") val meterCount: Int = 0,
+    val kwh: Double,
+    @SerialName("estimated_energy_cost") val estimatedEnergyCost: Double? = null,
+    @SerialName("peak_demand_kw") val peakDemandKw: Double,
+    @SerialName("contracted_power_kw") val contractedPowerKw: Double? = null,
+)

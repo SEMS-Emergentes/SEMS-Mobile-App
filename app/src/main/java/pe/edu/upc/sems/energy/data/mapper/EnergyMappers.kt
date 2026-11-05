@@ -62,3 +62,12 @@ private fun ZoneShareDto.toDomain(fallbackName: String = "Zona") = ZoneConsumpti
     sharePercent = sharePercent,
     estimatedEnergyCostSoles = estimatedEnergyCost,
 )
+
+fun pe.edu.upc.sems.energy.data.remote.dto.SiteShareDto.toDomain() = pe.edu.upc.sems.energy.domain.model.SiteConsumption(
+    siteId = siteId,
+    meterCount = meterCount,
+    kwh = kwh,
+    energyCostSoles = estimatedEnergyCost,
+    peakDemandKw = peakDemandKw,
+    contractedPowerKw = contractedPowerKw,
+)

@@ -205,6 +205,7 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
                         onRegisterCompany = { navController.navigate(RegisterOrganizationRoute) },
                         onAddFirstSite = { organizationId -> navController.navigate(NewSiteRoute(organizationId)) },
                         onOpenMonitoring = { navController.navigateToBottomDestination(BottomDestination.MONITORING) },
+                        onOpenAlerts = { navController.navigateToBottomDestination(BottomDestination.ALERTS) },
                     )
                 }
                 composable<MonitoringRoute> {

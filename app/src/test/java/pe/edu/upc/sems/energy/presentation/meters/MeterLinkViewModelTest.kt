@@ -99,5 +99,7 @@ class MeterLinkViewModelTest {
         override suspend fun currentDeviceReading(deviceId: String): ApiResult<EnergyReading?> = error("unused")
         override suspend fun deviceReadingHistory(deviceId: String, limit: Int): ApiResult<List<EnergyReading>> = error("unused")
         override suspend fun siteZoneConsumption(siteId: String, days: Int): ApiResult<SiteZoneConsumption> = error("unused")
+        override suspend fun siteComparison(organizationId: String, days: Int): ApiResult<List<pe.edu.upc.sems.energy.domain.model.SiteConsumption>> = error("unused")
+        override suspend fun userReadingsInRange(userId: String, from: java.time.Instant, to: java.time.Instant): ApiResult<List<EnergyReading>> = error("unused")
     }
 }

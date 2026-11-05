@@ -4,6 +4,7 @@ import pe.edu.upc.sems.energy.data.remote.dto.ConsumptionDto
 import pe.edu.upc.sems.energy.data.remote.dto.CreateMeterRequestDto
 import pe.edu.upc.sems.energy.data.remote.dto.EnergyMeterDto
 import pe.edu.upc.sems.energy.data.remote.dto.MeterReadingDto
+import pe.edu.upc.sems.energy.data.remote.dto.SiteComparisonDto
 import pe.edu.upc.sems.energy.data.remote.dto.ZoneBreakdownDto
 import kotlinx.serialization.json.JsonObject
 import retrofit2.http.Body
@@ -56,4 +57,7 @@ interface EnergyService {
 
     @GET("sites/{siteId}/zone-consumption")
     suspend fun siteZoneConsumption(@Path("siteId") siteId: String, @Query("days") days: Int): ZoneBreakdownDto
+
+    @GET("organizations/{organizationId}/site-consumption")
+    suspend fun siteComparison(@Path("organizationId") organizationId: String, @Query("days") days: Int): SiteComparisonDto
 }
