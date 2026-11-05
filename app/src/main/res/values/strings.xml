@@ -447,4 +447,41 @@
     <string name="dashboard_open_monitoring">Ir a Monitoreo</string>
     <string name="value_unavailable">No disponible</string>
     <string name="action_refresh">Actualizar</string>
+
+    <!-- Alerts (Figma M14, M15, M16; web: AlertsView.vue) -->
+    <string name="alerts_tab_active">Activas</string>
+    <string name="alerts_tab_acknowledged">Reconocidas</string>
+    <string name="alerts_tab_resolved">Resueltas</string>
+    <plurals name="alerts_active_summary">
+        <item quantity="one">%1$d alerta activa · ordenadas por severidad</item>
+        <item quantity="other">%1$d alertas activas · ordenadas por severidad</item>
+    </plurals>
+    <string name="alerts_acknowledged_hint">Atiende la situación y luego márcala como resuelta.</string>
+    <string name="alerts_resolved_hint">Historial de los últimos 7 días</string>
+    <string name="alerts_empty_active">No tienes alertas activas.</string>
+    <string name="alerts_empty_acknowledged">No tienes alertas reconocidas.</string>
+    <string name="alerts_empty_resolved">No hay alertas resueltas en los últimos 7 días.</string>
+    <string name="alert_untitled">Alerta</string>
+    <string name="alert_severity_high">Crítica</string>
+    <string name="alert_severity_medium">Media</string>
+    <string name="alert_severity_low">Baja</string>
+    <string name="alert_status_acknowledged">Reconocida</string>
+    <string name="alert_status_resolved">Resuelta</string>
+    <string name="alert_acknowledge">Reconocer</string>
+    <string name="alert_mark_resolved">Marcar como resuelta</string>
+    <string name="alert_view_site">Ver local</string>
+    <string name="alert_resolved_message">Alerta marcada como resuelta.</string>
+    <string name="alert_undo">Deshacer</string>
+    <string name="alert_action_failed">No se pudo actualizar la alerta. Inténtalo de nuevo.</string>
+    <string name="alert_resolved_at">Resuelta %1$s</string>
+    <string name="alert_time_now">hace un momento</string>
+    <string name="alert_time_minutes">hace %1$d min</string>
+    <string name="alert_time_hours">hace %1$d h</string>
+    <string name="alert_time_days">hace %1$d d</string>
+    <string name="alert_time_today">hoy %1$s</string>
+    <string name="alert_time_yesterday">ayer %1$s</string>
+    <plurals name="alerts_badge_description">
+        <item quantity="one">%1$d alerta activa</item>
+        <item quantity="other">%1$d alertas activas</item>
+    </plurals>
 </resources>
