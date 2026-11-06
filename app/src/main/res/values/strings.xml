@@ -513,4 +513,46 @@
         <item quantity="one">%1$d alerta activa</item>
         <item quantity="other">%1$d alertas activas</item>
     </plurals>
+    <!-- Analytics (Figma M17, M18, M19) -->
+    <string name="analytics_tab_recommendations">Recomendaciones</string>
+    <string name="analytics_tab_top">Top consumidores</string>
+    <string name="analytics_forecast_title">Factura estimada de %1$s</string>
+    <string name="analytics_forecast_title_none">Factura estimada</string>
+    <string name="analytics_forecast_caption">Proyección al cierre con tu consumo actual</string>
+    <string name="analytics_forecast_empty">Hace falta consumo medido del período para proyectarla.</string>
+    <string name="analytics_saving_up_to">Puedes ahorrar hasta %1$s al mes</string>
+    <string name="analytics_recs_title">Recomendaciones</string>
+    <plurals name="analytics_recs_pending">
+        <item quantity="one">%1$d pendiente</item>
+        <item quantity="other">%1$d pendientes</item>
+    </plurals>
+    <string name="analytics_saving_per_month">Ahorro %1$s / mes</string>
+    <string name="analytics_apply">Aplicar</string>
+    <string name="analytics_applied">Aplicada</string>
+    <string name="analytics_recs_empty">Aún no hay recomendaciones.</string>
+    <string name="analytics_recs_empty_hint">Salen del consumo medido: con unos días de lecturas empiezan a aparecer.</string>
+    <string name="analytics_applied_message">Recomendación aplicada.</string>
+    <string name="analytics_action_failed">No se pudo aplicar la recomendación. Inténtalo otra vez.</string>
+    <string name="analytics_section_error">No se pudo cargar esta sección.</string>
+    <string name="analytics_filter">Filtrar</string>
+    <string name="analytics_period_week">Últimos 7 días</string>
+    <string name="analytics_period_month">Últimos 30 días</string>
+    <string name="analytics_period_quarter">Últimos 90 días</string>
+    <plurals name="analytics_sites_count">
+        <item quantity="one">%1$d local</item>
+        <item quantity="other">%1$d locales</item>
+    </plurals>
+    <string name="analytics_period_summary">%1$s · %2$s</string>
+    <string name="analytics_compare_title">Comparación entre locales</string>
+    <string name="analytics_compare_note">Costo de la energía, sin cargo por potencia ni IGV.</string>
+    <string name="analytics_compare_need_two">Necesitas al menos dos locales.</string>
+    <string name="analytics_compare_need_two_hint">La comparación aparece cuando tu organización tiene más de un establecimiento.</string>
+    <string name="analytics_change_vs_previous">%1$s vs. período anterior</string>
+    <string name="analytics_ranking_title">Top consumidores</string>
+    <string name="analytics_ranking_empty">Sin equipos que ordenar.</string>
+    <string name="analytics_ranking_empty_hint">El ranking compara equipos; el reparto por zona está en Monitoreo.</string>
+    <string name="analytics_ranking_unnamed">Equipo</string>
+    <string name="analytics_locked_title">Analítica avanzada</string>
+    <string name="analytics_locked_body">Las recomendaciones personalizadas y la proyección de factura están disponibles desde el plan Business.</string>
+    <string name="analytics_locked_cta">Mejorar al plan Business</string>
 </resources>
