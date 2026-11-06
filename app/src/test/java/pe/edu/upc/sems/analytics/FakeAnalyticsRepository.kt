@@ -7,8 +7,6 @@ import pe.edu.upc.sems.analytics.domain.model.RankingEntry
 import pe.edu.upc.sems.analytics.domain.model.Recommendation
 import pe.edu.upc.sems.analytics.domain.repository.AnalyticsRepository
 import pe.edu.upc.sems.shared.network.ApiResult
-import pe.edu.upc.sems.subscriptions.domain.model.PlanTier
-import pe.edu.upc.sems.subscriptions.domain.repository.SubscriptionRepository
 
 /** Configurable fake: every call is recorded. A successful apply answers with the recommendation applied. */
 class FakeAnalyticsRepository : AnalyticsRepository {
@@ -56,6 +54,3 @@ class FakeAnalyticsRepository : AnalyticsRepository {
     }
 }
 
-class FakeSubscriptionRepository(var result: ApiResult<PlanTier> = ApiResult.Success(PlanTier.BUSINESS)) : SubscriptionRepository {
-    override suspend fun currentTier(userId: String) = result
-}

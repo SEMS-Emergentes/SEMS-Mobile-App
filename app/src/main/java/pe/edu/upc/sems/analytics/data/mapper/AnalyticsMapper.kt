@@ -18,6 +18,7 @@ fun RecommendationDto.toDomain() = Recommendation(
     // The backend sends `status` ("pending" / "applied") and applied_at, not a boolean.
     applied = status.equals("applied", ignoreCase = true),
     generatedAt = generatedAt.toInstantOrNull(),
+    appliedAt = appliedAt.toInstantOrNull(),
 )
 
 fun BillPredictionDto.toDomain() = BillPrediction(

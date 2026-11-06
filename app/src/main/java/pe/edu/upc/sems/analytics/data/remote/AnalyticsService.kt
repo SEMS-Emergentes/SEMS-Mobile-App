@@ -31,6 +31,7 @@ data class RecommendationDto(
     /** `pending` or `applied`. */
     val status: String? = null,
     @SerialName("generated_at") val generatedAt: String? = null,
+    @SerialName("applied_at") val appliedAt: String? = null,
 )
 
 @Serializable

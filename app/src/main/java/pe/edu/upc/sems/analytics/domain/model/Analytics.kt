@@ -11,6 +11,8 @@ data class Recommendation(
     val estimatedSavingSoles: Double,
     val applied: Boolean,
     val generatedAt: Instant?,
+    /** When the user applied it; null while pending. */
+    val appliedAt: Instant? = null,
 )
 
 /** The backend's forecast of one site's bill for a month (`/analytics/bill-predictions`). */

@@ -38,6 +38,7 @@ import pe.edu.upc.sems.shared.session.AuthTokens
 import pe.edu.upc.sems.shared.session.FakeSessionManager
 import pe.edu.upc.sems.shared.session.Session
 import pe.edu.upc.sems.shared.session.SessionUser
+import pe.edu.upc.sems.subscriptions.FakeSubscriptionRepository
 import pe.edu.upc.sems.subscriptions.domain.model.PlanTier
 import pe.edu.upc.sems.testing.MainDispatcherRule
 

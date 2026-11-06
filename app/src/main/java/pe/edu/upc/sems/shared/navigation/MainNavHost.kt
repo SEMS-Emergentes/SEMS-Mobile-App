@@ -70,6 +70,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import pe.edu.upc.sems.alerts.presentation.alerts.AlertsScreen
 import pe.edu.upc.sems.analytics.presentation.AnalyticsScreen
+import pe.edu.upc.sems.reports.presentation.ReportPreviewScreen
+import pe.edu.upc.sems.reports.presentation.ReportsScreen
+import pe.edu.upc.sems.subscriptions.presentation.SubscriptionScreen
 import pe.edu.upc.sems.alerts.presentation.badge.AlertBadgeViewModel
 import pe.edu.upc.sems.dashboard.presentation.DashboardScreen
 import pe.edu.upc.sems.devices.presentation.deviceform.DeviceFormMode
@@ -115,6 +118,7 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
         destination.isRoute(LinkMeterRoute::class) ||
         destination.isRoute(MeterHistoryRoute::class) ||
         destination.isRoute(ConsumptionDetailRoute::class) ||
+        destination.isRoute(ReportPreviewRoute::class) ||
         destination.isRoute(NewSiteRoute::class) ||
         destination.isRoute(EditSiteRoute::class) ||
         destination.isRoute(SiteDetailRoute::class)
@@ -237,8 +241,21 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
                         onRegisterCompany = { navController.navigate(RegisterOrganizationRoute) },
                     )
                 }
-                composable<ReportsRoute> { ComingSoonScreen() }
-                composable<SubscriptionRoute> { ComingSoonScreen() }
+                composable<ReportsRoute> {
+                    ReportsScreen(
+                        onUpgrade = { navController.navigate(SubscriptionRoute) },
+                        onDownload = { from, to -> navController.navigate(ReportPreviewRoute(from.toString(), to.toString())) },
+                    )
+                }
+                composable<ReportPreviewRoute> { entry ->
+                    val route = entry.toRoute<ReportPreviewRoute>()
+                    ReportPreviewScreen(
+                        from = java.time.LocalDate.parse(route.from),
+                        to = java.time.LocalDate.parse(route.to),
+                        onBack = navController::popBackStack,
+                    )
+                }
+                composable<SubscriptionRoute> { SubscriptionScreen() }
                 composable<SettingsRoute> { ComingSoonScreen() }
                 // Full-screen forms
                 composable<NewDeviceRoute> {

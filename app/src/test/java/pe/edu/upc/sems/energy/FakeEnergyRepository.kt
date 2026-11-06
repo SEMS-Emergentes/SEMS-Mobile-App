@@ -30,7 +30,9 @@ class FakeEnergyRepository : EnergyRepository {
     var deviceConsumptionsResult: ApiResult<List<DeviceConsumption>> = ApiResult.Success(emptyList())
 
     override suspend fun listDeviceConsumptions(userId: String): ApiResult<List<DeviceConsumption>> = deviceConsumptionsResult
-    override suspend fun listMeters(userId: String): ApiResult<List<EnergyMeter>> = error("unused")
+    var metersResult: ApiResult<List<EnergyMeter>> = ApiResult.Success(emptyList())
+
+    override suspend fun listMeters(userId: String): ApiResult<List<EnergyMeter>> = metersResult
     var metersBySiteResult: ApiResult<List<EnergyMeter>> = ApiResult.Success(emptyList())
 
     override suspend fun listMetersBySite(siteId: String): ApiResult<List<EnergyMeter>> = metersBySiteResult
