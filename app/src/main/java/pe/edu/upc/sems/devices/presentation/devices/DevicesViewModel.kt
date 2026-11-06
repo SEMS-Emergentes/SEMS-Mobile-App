@@ -3,6 +3,7 @@ package pe.edu.upc.sems.devices.presentation.devices
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import javax.inject.Inject
@@ -18,6 +19,7 @@ import pe.edu.upc.sems.devices.domain.model.Device
 import pe.edu.upc.sems.devices.domain.model.DeviceStatus
 import pe.edu.upc.sems.devices.domain.repository.DeviceRepository
 import pe.edu.upc.sems.energy.domain.model.DeviceConsumption
+import pe.edu.upc.sems.energy.domain.model.EnergyReading
 import pe.edu.upc.sems.energy.domain.repository.EnergyRepository
 import pe.edu.upc.sems.organizations.domain.repository.OrganizationRepository
 import pe.edu.upc.sems.organizations.presentation.common.FormError
@@ -66,6 +68,24 @@ internal fun todayConsumption(
     return matching.sumOf { it.totalKwh } to matching.sumOf { it.costSoles }
 }
 
+/**
+ * What [deviceId] reported today (Lima time), added up from the readings the backend sent: their `energy_kwh`
+ * and the `estimated_cost` the backend put on each one. This is the web app's second step when the backend
+ * has no per-device totals (energy.service.js, getDeviceConsumption). Readings without a device belong to the
+ * site, not to a piece of equipment, so they never count here. Null when the device sent nothing today.
+ */
+internal fun todayFromReadings(
+    readings: List<EnergyReading>,
+    deviceId: String,
+    today: LocalDate,
+): Pair<Double?, Double?>? {
+    val mine = readings.filter { it.deviceId == deviceId && it.measuredAt?.atZone(LIMA)?.toLocalDate() == today }
+    if (mine.isEmpty()) return null
+    val kwh = mine.mapNotNull { it.energyKwh }
+    val cost = mine.mapNotNull { it.estimatedCostSoles }
+    return kwh.takeIf { it.isNotEmpty() }?.sum() to cost.takeIf { it.isNotEmpty() }?.sum()
+}
+
 /** "Mis Dispositivos", tab Equipos (Figma M07, web: DevicesView.vue). */
 @HiltViewModel
 class DevicesViewModel @Inject constructor(
@@ -104,17 +124,34 @@ class DevicesViewModel @Inject constructor(
                 namesJob.await() to consumptionJob.await()
             }
             val consumptions = (consumptionResult as? ApiResult.Success)?.data.orEmpty()
-            val consumptionError = (consumptionResult as? ApiResult.Failure)?.error?.toFormError()
             val today = LocalDate.now(LIMA)
+
+            // Same two steps as the web app: the backend's per-device totals when it has them and, for the
+            // devices it has none for, the readings of today added up per device. Nothing in the backend
+            // writes those totals yet, so in practice the readings are what shows up.
+            val totals = deviceList.associate { it.id to todayConsumption(consumptions, it.id, today) }
+            var consumptionError: FormError? = null
+            val readings = if (totals.values.any { it == null }) {
+                when (val result = energy.userReadingsInRange(userId, today.atStartOfDay(LIMA).toInstant(), Instant.now())) {
+                    is ApiResult.Success -> result.data
+                    is ApiResult.Failure -> {
+                        consumptionError = result.error.toFormError()
+                        emptyList()
+                    }
+                }
+            } else {
+                emptyList()
+            }
             _uiState.value = DevicesUiState.Success(
                 deviceList.map { device ->
-                    val consumed = todayConsumption(consumptions, device.id, today)
+                    val figures: Pair<Double?, Double?>? = totals[device.id]?.let { it.first to it.second }
+                        ?: todayFromReadings(readings, device.id, today)
                     DeviceItem(
                         device = device,
                         siteName = names.sites[device.siteId],
                         zoneName = device.zoneId?.let(names.zones::get),
-                        todayKwh = consumed?.first,
-                        todayCostSoles = consumed?.second,
+                        todayKwh = figures?.first,
+                        todayCostSoles = figures?.second,
                     )
                 },
                 consumptionError = consumptionError,
