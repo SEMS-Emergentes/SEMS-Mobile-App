@@ -69,6 +69,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import pe.edu.upc.sems.alerts.presentation.alerts.AlertsScreen
+import pe.edu.upc.sems.analytics.presentation.AnalyticsScreen
 import pe.edu.upc.sems.alerts.presentation.badge.AlertBadgeViewModel
 import pe.edu.upc.sems.dashboard.presentation.DashboardScreen
 import pe.edu.upc.sems.devices.presentation.deviceform.DeviceFormMode
@@ -218,7 +219,9 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
                 composable<AlertsRoute> {
                     AlertsScreen(onViewSite = { siteId -> navController.navigate(SiteDetailRoute(siteId)) })
                 }
-                composable<AnalyticsRoute> { ComingSoonScreen() }
+                composable<AnalyticsRoute> {
+                    AnalyticsScreen(onUpgrade = { navController.navigate(SubscriptionRoute) })
+                }
                 // Drawer
                 composable<DevicesRoute> {
                     DevicesScreen(
