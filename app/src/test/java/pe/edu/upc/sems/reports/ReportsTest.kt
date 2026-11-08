@@ -66,6 +66,19 @@ class ReportsTest {
     // region the periods
 
     private val today = LocalDate.of(2026, 11, 6)
+    private val ES = java.util.Locale("es")
+    private val EN = java.util.Locale("en")
+
+    @Test
+    fun `in English the months and the file name are in English`() {
+        val september = ReportRange(LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 30))
+
+        assertEquals("September 2026", reportPeriodLabel(september, EN))
+        assertEquals("SEMS_Report_sep-2026.pdf", reportFileName(september, EN))
+        assertEquals("september 2026", pe.edu.upc.sems.reports.presentation.monthYearLower(september.from, EN))
+        // Any language other than Spanish falls back to English.
+        assertEquals("September 2026", reportPeriodLabel(september, java.util.Locale("fr")))
+    }
 
     @Test
     fun `this month goes from its first day to today`() {
@@ -107,12 +120,12 @@ class ReportsTest {
     @Test
     fun `labels and file names tell a whole month from any other range`() {
         val september = ReportRange(LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 30))
-        assertEquals("Septiembre 2026", reportPeriodLabel(september))
-        assertEquals("Reporte_SEMS_sep-2026.pdf", reportFileName(september))
+        assertEquals("Septiembre 2026", reportPeriodLabel(september, ES))
+        assertEquals("Reporte_SEMS_sep-2026.pdf", reportFileName(september, ES))
 
         val partial = ReportRange(LocalDate.of(2026, 11, 1), today)
-        assertEquals("01/11/2026 – 06/11/2026", reportPeriodLabel(partial))
-        assertEquals("Reporte_SEMS_2026-11-01_2026-11-06.pdf", reportFileName(partial))
+        assertEquals("01/11/2026 – 06/11/2026", reportPeriodLabel(partial, ES))
+        assertEquals("Reporte_SEMS_2026-11-01_2026-11-06.pdf", reportFileName(partial, ES))
     }
 
     @Test
@@ -295,7 +308,7 @@ class ReportsTest {
         assertEquals(10.0, ready.data.totalKwh, 1e-9)
         assertEquals("content://downloads/report.pdf", ready.fileUri)
         assertEquals(1, files.saved.size)
-        assertEquals(reportFileName(october), files.saved.single().first)
+        assertEquals(reportFileName(october, java.util.Locale.getDefault()), files.saved.single().first)
         assertEquals(ReportMessage.SAVED, viewModel.message.value!!.kind)
     }
 

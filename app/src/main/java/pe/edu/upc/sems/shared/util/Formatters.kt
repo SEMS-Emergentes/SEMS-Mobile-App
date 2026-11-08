@@ -12,10 +12,17 @@ object Formatters {
 
     private const val NBSP = ' '
 
+    /**
+     * False (the default) writes numbers the Spanish way, as above. The app sets it to true while it is in
+     * English: `4,820 kWh`, `95.5 kW`, `S/ 52.40`.
+     */
+    @Volatile
+    var useEnglishFormat: Boolean = false
+
     private fun decimalFormat(maxFractionDigits: Int): DecimalFormat {
         val symbols = DecimalFormatSymbols().apply {
-            groupingSeparator = NBSP
-            decimalSeparator = ','
+            groupingSeparator = if (useEnglishFormat) ',' else NBSP
+            decimalSeparator = if (useEnglishFormat) '.' else ','
         }
         return DecimalFormat("#,##0", symbols).apply {
             maximumFractionDigits = maxFractionDigits

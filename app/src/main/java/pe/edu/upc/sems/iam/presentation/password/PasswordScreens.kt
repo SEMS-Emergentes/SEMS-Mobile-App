@@ -420,8 +420,8 @@ private fun RuleRowPreview() {
     SemsTheme {
         Surface {
             Column(Modifier.padding(SemsSpacing.lg)) {
-                RuleRow(met = true, text = "8 caracteres o más")
-                RuleRow(met = false, text = "Las dos contraseñas coinciden")
+                RuleRow(met = true, text = stringResource(R.string.reset_rule_min_length, 8))
+                RuleRow(met = false, text = stringResource(R.string.reset_rule_match))
             }
         }
     }
