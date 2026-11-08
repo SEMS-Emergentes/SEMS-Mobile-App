@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import pe.edu.upc.sems.reports.domain.ReportData
 import pe.edu.upc.sems.reports.domain.ReportFiles
+import pe.edu.upc.sems.settings.data.withLanguage
 
 /**
  * Saves the PDF in the public Downloads folder through MediaStore. From Android 10 (our minSdk is 29) that needs
@@ -20,6 +21,7 @@ import pe.edu.upc.sems.reports.domain.ReportFiles
 @Singleton
 class AndroidReportFiles @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val languages: pe.edu.upc.sems.settings.domain.LanguageStore,
 ) : ReportFiles {
 
     override suspend fun savePdf(data: ReportData, fileName: String): String? = withContext(Dispatchers.IO) {
@@ -32,7 +34,9 @@ class AndroidReportFiles @Inject constructor(
         }
         val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values) ?: return@withContext null
         try {
-            resolver.openOutputStream(uri)?.use { PdfReportWriter(context).write(data, it) } ?: error("no output stream")
+            // The PDF is written in the language the app is in: the application context itself is not.
+            val localized = context.withLanguage(languages.get())
+            resolver.openOutputStream(uri)?.use { PdfReportWriter(localized).write(data, it) } ?: error("no output stream")
             resolver.update(uri, ContentValues().apply { put(MediaStore.Downloads.IS_PENDING, 0) }, null, null)
             uri.toString()
         } catch (e: CancellationException) {

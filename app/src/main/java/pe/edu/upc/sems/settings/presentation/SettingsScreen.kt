@@ -1,6 +1,10 @@
 package pe.edu.upc.sems.settings.presentation
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -42,6 +46,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import pe.edu.upc.sems.R
+import pe.edu.upc.sems.settings.domain.AppLanguage
 import pe.edu.upc.sems.settings.domain.ThemeMode
 import pe.edu.upc.sems.shared.designsystem.SemsSpacing
 import pe.edu.upc.sems.shared.session.SessionUser
@@ -59,6 +64,8 @@ fun SettingsScreen(
         onPauseOrDispose { }
     }
     var themeDialog by remember { mutableStateOf(false) }
+    var languageDialog by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -103,11 +110,10 @@ fun SettingsScreen(
             modifier = Modifier.padding(top = SemsSpacing.xs),
         )
         OutlinedCard(shape = MaterialTheme.shapes.large, modifier = Modifier.fillMaxWidth()) {
-            // The app is only written in Spanish for now, so the language is shown and cannot be changed.
             PreferenceRow(
                 title = stringResource(R.string.settings_language),
-                value = stringResource(R.string.settings_language_spanish),
-                onClick = null,
+                value = stringResource(state.language.label()),
+                onClick = { languageDialog = true },
             )
             HorizontalDivider(Modifier.padding(horizontal = SemsSpacing.md))
             PreferenceRow(
@@ -126,6 +132,21 @@ fun SettingsScreen(
             Spacer(Modifier.width(SemsSpacing.xs))
             Text(stringResource(R.string.settings_logout))
         }
+    }
+
+    if (languageDialog) {
+        LanguageDialog(
+            selected = state.language,
+            onSelect = { language ->
+                languageDialog = false
+                if (language != state.language) {
+                    viewModel.onLanguageChange(language)
+                    // Every text of the app is read again, now in the chosen language.
+                    context.findActivity()?.recreate()
+                }
+            },
+            onDismiss = { languageDialog = false },
+        )
     }
 
     if (themeDialog) {
@@ -213,6 +234,44 @@ private fun ThemeDialog(selected: ThemeMode, onSelect: (ThemeMode) -> Unit, onDi
         },
         confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.settings_close)) } },
     )
+}
+
+@Composable
+private fun LanguageDialog(selected: AppLanguage, onSelect: (AppLanguage) -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.settings_language)) },
+        text = {
+            Column {
+                AppLanguage.entries.forEach { language ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .selectable(selected = language == selected, role = Role.RadioButton, onClick = { onSelect(language) })
+                            .padding(vertical = SemsSpacing.xs),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        RadioButton(selected = language == selected, onClick = null)
+                        Spacer(Modifier.width(SemsSpacing.sm))
+                        Text(stringResource(language.label()))
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.settings_close)) } },
+    )
+}
+
+/** Each language is always named in its own language, so the user can find theirs whatever the app shows. */
+private fun AppLanguage.label(): Int = when (this) {
+    AppLanguage.ENGLISH -> R.string.settings_language_english
+    AppLanguage.SPANISH -> R.string.settings_language_spanish
+}
+
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }
 
 private fun ThemeMode.label(): Int = when (this) {

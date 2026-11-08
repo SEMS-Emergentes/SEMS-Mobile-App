@@ -61,6 +61,7 @@ class SettingsTest {
     private val sessionManager = FakeSessionManager(Session(AuthTokens("jwt", "refresh"), user, selectedSite = null))
     private val alerts = FakeAlertRepository()
     private val appearance = FakeAppearanceStore()
+    private val languages = FakeLanguageStore()
 
     // region small helpers
 
@@ -85,7 +86,7 @@ class SettingsTest {
 
     // region Configuración
 
-    private fun settings() = SettingsViewModel(alerts, appearance, sessionManager)
+    private fun settings() = SettingsViewModel(alerts, appearance, languages, sessionManager)
 
     @Test
     fun `shows the user and, without a saved preference, the email switch on`() = runTest(mainRule.dispatcher) {
@@ -168,6 +169,36 @@ class SettingsTest {
 
         assertEquals(ThemeMode.DARK, appearance.themeMode.first())
         assertEquals(ThemeMode.DARK, viewModel.uiState.value.themeMode)
+    }
+
+    @Test
+    fun `English is the default language and the chosen one is saved`() = runTest(mainRule.dispatcher) {
+        val viewModel = settings()
+        assertEquals(pe.edu.upc.sems.settings.domain.AppLanguage.ENGLISH, viewModel.uiState.value.language)
+
+        viewModel.onLanguageChange(pe.edu.upc.sems.settings.domain.AppLanguage.SPANISH)
+
+        assertEquals(pe.edu.upc.sems.settings.domain.AppLanguage.SPANISH, languages.language)
+        assertEquals(pe.edu.upc.sems.settings.domain.AppLanguage.SPANISH, viewModel.uiState.value.language)
+    }
+
+    @Test
+    fun `a language tag that is not known falls back to English`() {
+        assertEquals(pe.edu.upc.sems.settings.domain.AppLanguage.ENGLISH, pe.edu.upc.sems.settings.domain.AppLanguage.fromTag(null))
+        assertEquals(pe.edu.upc.sems.settings.domain.AppLanguage.ENGLISH, pe.edu.upc.sems.settings.domain.AppLanguage.fromTag("fr"))
+        assertEquals(pe.edu.upc.sems.settings.domain.AppLanguage.SPANISH, pe.edu.upc.sems.settings.domain.AppLanguage.fromTag("es"))
+    }
+
+    @Test
+    fun `numbers are written the English way when the app is in English`() {
+        val before = pe.edu.upc.sems.shared.util.Formatters.useEnglishFormat
+        try {
+            pe.edu.upc.sems.shared.util.Formatters.useEnglishFormat = true
+            assertEquals("4,820 kWh", pe.edu.upc.sems.shared.util.Formatters.kilowattHours(4820.0).replace(' ', ' '))
+            assertEquals("S/ 52.40", pe.edu.upc.sems.shared.util.Formatters.soles(52.4).replace(' ', ' '))
+        } finally {
+            pe.edu.upc.sems.shared.util.Formatters.useEnglishFormat = before
+        }
     }
 
     @Test
@@ -269,4 +300,12 @@ class SettingsTest {
     }
 
     // endregion
+}
+
+class FakeLanguageStore(var language: pe.edu.upc.sems.settings.domain.AppLanguage = pe.edu.upc.sems.settings.domain.AppLanguage.DEFAULT) :
+    pe.edu.upc.sems.settings.domain.LanguageStore {
+    override fun get() = language
+    override fun set(language: pe.edu.upc.sems.settings.domain.AppLanguage) {
+        this.language = language
+    }
 }

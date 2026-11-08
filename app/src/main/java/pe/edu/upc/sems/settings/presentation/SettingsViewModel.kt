@@ -28,6 +28,7 @@ data class SettingsUiState(
     /** The last read or change of the email switch failed. */
     val emailFailed: Boolean = false,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    val language: pe.edu.upc.sems.settings.domain.AppLanguage = pe.edu.upc.sems.settings.domain.AppLanguage.DEFAULT,
 )
 
 /** "Configuración" (Figma M25; web: SettingsView.vue and the notification card of Alertas). */
@@ -35,6 +36,7 @@ data class SettingsUiState(
 class SettingsViewModel @Inject constructor(
     private val alerts: AlertRepository,
     private val appearance: AppearanceStore,
+    private val languages: pe.edu.upc.sems.settings.domain.LanguageStore,
     private val sessionManager: SessionManager,
 ) : ViewModel() {
 
@@ -45,6 +47,7 @@ class SettingsViewModel @Inject constructor(
     private var minSeverity: String? = null
 
     init {
+        _uiState.update { it.copy(language = languages.get()) }
         viewModelScope.launch {
             sessionManager.session.collect { session -> _uiState.update { it.copy(user = session?.user) } }
         }
@@ -86,6 +89,12 @@ class SettingsViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    /** Saves the language. The screen then recreates the activity so every text is read again in it. */
+    fun onLanguageChange(language: pe.edu.upc.sems.settings.domain.AppLanguage) {
+        languages.set(language)
+        _uiState.update { it.copy(language = language) }
     }
 
     fun onThemeChange(mode: ThemeMode) {

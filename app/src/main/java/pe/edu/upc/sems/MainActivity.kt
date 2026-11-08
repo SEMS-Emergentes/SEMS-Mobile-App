@@ -1,5 +1,6 @@
 package pe.edu.upc.sems
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
@@ -13,6 +14,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import pe.edu.upc.sems.settings.data.SharedPrefsLanguageStore
+import pe.edu.upc.sems.settings.data.withLanguage
 import pe.edu.upc.sems.settings.domain.ThemeMode
 import pe.edu.upc.sems.settings.presentation.ThemeViewModel
 import pe.edu.upc.sems.shared.designsystem.SemsTheme
@@ -24,6 +27,16 @@ class MainActivity : ComponentActivity() {
 
     private val appViewModel: AppViewModel by viewModels()
     private val themeViewModel: ThemeViewModel by viewModels()
+
+    /**
+     * The screens read their texts from this context, so it is built in the language the user chose. Changing
+     * the language recreates the activity, which comes through here again.
+     */
+    override fun attachBaseContext(newBase: Context) {
+        val language = SharedPrefsLanguageStore.read(newBase)
+        SharedPrefsLanguageStore.apply(language)
+        super.attachBaseContext(newBase.withLanguage(language))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

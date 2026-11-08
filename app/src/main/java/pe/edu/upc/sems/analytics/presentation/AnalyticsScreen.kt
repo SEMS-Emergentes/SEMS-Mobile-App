@@ -53,9 +53,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import java.time.Month
-import java.time.format.TextStyle
-import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import pe.edu.upc.sems.R
@@ -528,9 +525,9 @@ private fun ComparisonPeriod.label(): Int = when (this) {
     ComparisonPeriod.QUARTER -> R.string.analytics_period_quarter
 }
 
-/** "Octubre" for month 10. */
+/** "Octubre" / "October" for month 10, in the language the app is in. */
 private fun monthName(month: Int): String =
-    Month.of(month.coerceIn(1, 12)).getDisplayName(TextStyle.FULL, Locale("es", "PE"))
+    pe.edu.upc.sems.reports.domain.monthNames()[month.coerceIn(1, 12) - 1].replaceFirstChar { it.uppercase() }
 
 /** `+3 %`, `−5 %`, `0 %`: whole percent with its sign. */
 internal fun signedPercent(value: Double): String {

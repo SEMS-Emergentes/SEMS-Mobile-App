@@ -23,6 +23,10 @@ abstract class SettingsModule {
     @Binds
     abstract fun bindAppearanceStore(impl: DataStoreAppearanceStore): AppearanceStore
 
+    @Binds
+    abstract fun bindLanguageStore(impl: pe.edu.upc.sems.settings.data.SharedPrefsLanguageStore):
+        pe.edu.upc.sems.settings.domain.LanguageStore
+
     companion object {
         @Provides
         @Singleton

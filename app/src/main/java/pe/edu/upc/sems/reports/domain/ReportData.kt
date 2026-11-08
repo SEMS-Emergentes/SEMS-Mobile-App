@@ -133,17 +133,33 @@ fun buildReport(
 }
 
 // Spelled out here because the phone's locale data varies (some write "setiembre").
-private val SHORT_MONTHS = listOf("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic")
-val MONTH_NAMES = listOf(
+private val SHORT_MONTHS_ES = listOf("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic")
+private val SHORT_MONTHS_EN = listOf("jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec")
+private val MONTH_NAMES_ES = listOf(
     "enero", "febrero", "marzo", "abril", "mayo", "junio",
     "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
 )
+private val MONTH_NAMES_EN = listOf(
+    "january", "february", "march", "april", "may", "june",
+    "july", "august", "september", "october", "november", "december",
+)
 
-/** `Reporte_SEMS_sep-2026.pdf` for a whole month, `Reporte_SEMS_2026-09-05_2026-09-20.pdf` otherwise. */
-fun reportFileName(range: ReportRange): String {
+private fun java.util.Locale.isSpanish() = language == "es"
+
+/** The month names (lower case) in the language of [locale]: Spanish, or English for anything else. */
+fun monthNames(locale: java.util.Locale = java.util.Locale.getDefault()): List<String> =
+    if (locale.isSpanish()) MONTH_NAMES_ES else MONTH_NAMES_EN
+
+/**
+ * `Reporte_SEMS_sep-2026.pdf` (`SEMS_Report_sep-2026.pdf` in English) for a whole month,
+ * `Reporte_SEMS_2026-09-05_2026-09-20.pdf` otherwise.
+ */
+fun reportFileName(range: ReportRange, locale: java.util.Locale = java.util.Locale.getDefault()): String {
+    val prefix = if (locale.isSpanish()) "Reporte_SEMS" else "SEMS_Report"
     return if (range.isWholeMonth()) {
-        "Reporte_SEMS_${SHORT_MONTHS[range.from.monthValue - 1]}-${range.from.year}.pdf"
+        val months = if (locale.isSpanish()) SHORT_MONTHS_ES else SHORT_MONTHS_EN
+        "${prefix}_${months[range.from.monthValue - 1]}-${range.from.year}.pdf"
     } else {
-        "Reporte_SEMS_${range.from}_${range.to}.pdf"
+        "${prefix}_${range.from}_${range.to}.pdf"
     }
 }
