@@ -77,8 +77,8 @@ fun AlertsScreen(
                 if (result == SnackbarResult.ActionPerformed) viewModel.onUndo(message.alertId, message.previous)
             }
             AlertMessage.ActionFailed -> {
-                viewModel.onMessageShown()
                 snackbar.showSnackbar(failedText)
+                viewModel.onMessageShown()
             }
         }
     }

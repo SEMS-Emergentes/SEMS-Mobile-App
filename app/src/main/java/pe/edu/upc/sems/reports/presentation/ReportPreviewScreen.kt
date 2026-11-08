@@ -18,6 +18,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
@@ -80,14 +81,16 @@ fun ReportPreviewScreen(
     val shareText = stringResource(R.string.report_share)
     LaunchedEffect(message) {
         val current = message ?: return@LaunchedEffect
-        viewModel.onMessageShown()
-        when (current) {
+        // The notice is cleared after it was shown: clearing it first would change this effect's key and
+        // cancel the snackbar before it appears. A newer event cancels this one before it gets to clear it.
+        when (current.kind) {
             ReportMessage.SAVED -> {
-                val result = snackbar.showSnackbar(savedText, shareText)
+                val result = snackbar.showSnackbar(savedText, shareText, duration = SnackbarDuration.Long)
                 if (result == SnackbarResult.ActionPerformed) share()
             }
             ReportMessage.SAVE_FAILED -> snackbar.showSnackbar(failedText)
         }
+        viewModel.onMessageShown()
     }
 
     Column(Modifier.fillMaxSize()) {

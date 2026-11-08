@@ -91,8 +91,9 @@ fun AnalyticsScreen(
             AnalyticsMessage.APPLIED -> appliedText
             AnalyticsMessage.ACTION_FAILED -> failedText
         }
-        viewModel.onMessageShown()
+        // Clearing the message first would change this effect's key and cancel the snackbar before it shows.
         snackbar.showSnackbar(text)
+        viewModel.onMessageShown()
     }
 
     Box(Modifier.fillMaxSize()) {

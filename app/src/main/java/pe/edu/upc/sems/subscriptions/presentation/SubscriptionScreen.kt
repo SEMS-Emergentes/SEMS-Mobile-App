@@ -86,8 +86,9 @@ fun SubscriptionScreen(viewModel: SubscriptionViewModel = hiltViewModel()) {
     )
     LaunchedEffect(state.message) {
         val message = state.message ?: return@LaunchedEffect
-        viewModel.onMessageShown()
+        // Clearing the message first would change this effect's key and cancel the snackbar before it shows.
         snackbar.showSnackbar(messages.getValue(message))
+        viewModel.onMessageShown()
     }
 
     Box(Modifier.fillMaxSize()) {

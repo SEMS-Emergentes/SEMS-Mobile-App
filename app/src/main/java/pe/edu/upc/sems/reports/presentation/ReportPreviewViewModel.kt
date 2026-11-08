@@ -38,6 +38,9 @@ sealed interface ReportPreviewUiState {
 
 enum class ReportMessage { SAVED, SAVE_FAILED }
 
+/** A notice for the snackbar. It is a class (not a value) so two equal notices in a row are still two events. */
+class ReportEvent(val kind: ReportMessage)
+
 /** "Vista previa" (Figma M22): builds the report of the chosen days, saves the PDF and shows its first page. */
 @HiltViewModel
 class ReportPreviewViewModel @Inject constructor(
@@ -52,8 +55,10 @@ class ReportPreviewViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<ReportPreviewUiState>(ReportPreviewUiState.Loading)
     val uiState: StateFlow<ReportPreviewUiState> = _uiState.asStateFlow()
 
-    private val _message = MutableStateFlow<ReportMessage?>(null)
-    val message: StateFlow<ReportMessage?> = _message.asStateFlow()
+    private val _message = MutableStateFlow<ReportEvent?>(null)
+
+    /** Each event is a new object, so saving again shows the notice again even if the last one is still up. */
+    val message: StateFlow<ReportEvent?> = _message.asStateFlow()
 
     private var loaded = false
 
@@ -120,7 +125,7 @@ class ReportPreviewViewModel @Inject constructor(
     private suspend fun save(data: ReportData, fileName: String) {
         val uri = files.savePdf(data, fileName)
         _uiState.update { state -> if (state is ReportPreviewUiState.Ready) state.copy(fileUri = uri ?: state.fileUri) else state }
-        _message.value = if (uri != null) ReportMessage.SAVED else ReportMessage.SAVE_FAILED
+        _message.value = ReportEvent(if (uri != null) ReportMessage.SAVED else ReportMessage.SAVE_FAILED)
     }
 
     private fun fail(error: FormError) {

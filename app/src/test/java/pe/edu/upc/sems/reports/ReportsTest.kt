@@ -296,7 +296,7 @@ class ReportsTest {
         assertEquals("content://downloads/report.pdf", ready.fileUri)
         assertEquals(1, files.saved.size)
         assertEquals(reportFileName(october), files.saved.single().first)
-        assertEquals(ReportMessage.SAVED, viewModel.message.value)
+        assertEquals(ReportMessage.SAVED, viewModel.message.value!!.kind)
     }
 
     @Test
@@ -309,7 +309,7 @@ class ReportsTest {
 
         val ready = viewModel.uiState.value as ReportPreviewUiState.Ready
         assertNull(ready.fileUri)
-        assertEquals(ReportMessage.SAVE_FAILED, viewModel.message.value)
+        assertEquals(ReportMessage.SAVE_FAILED, viewModel.message.value!!.kind)
     }
 
     @Test
