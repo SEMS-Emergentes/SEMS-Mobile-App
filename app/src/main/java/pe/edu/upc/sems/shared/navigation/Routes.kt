@@ -98,6 +98,10 @@ data class LinkMeterRoute(val serial: String = "", val model: String? = null)
 @Serializable
 data class MeterHistoryRoute(val meterId: String)
 
+/** "Editar perfil": name and segment of the user (opened from Configuración). */
+@Serializable
+data object EditProfileRoute
+
 /** M22: preview of the monthly report of the days from [from] to [to] (ISO dates, both included). */
 @Serializable
 data class ReportPreviewRoute(val from: String, val to: String)

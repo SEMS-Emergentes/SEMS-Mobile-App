@@ -71,6 +71,8 @@ import kotlinx.coroutines.launch
 import pe.edu.upc.sems.alerts.presentation.alerts.AlertsScreen
 import pe.edu.upc.sems.analytics.presentation.AnalyticsScreen
 import pe.edu.upc.sems.reports.presentation.ReportPreviewScreen
+import pe.edu.upc.sems.settings.presentation.EditProfileScreen
+import pe.edu.upc.sems.settings.presentation.SettingsScreen
 import pe.edu.upc.sems.reports.presentation.ReportsScreen
 import pe.edu.upc.sems.subscriptions.presentation.SubscriptionScreen
 import pe.edu.upc.sems.alerts.presentation.badge.AlertBadgeViewModel
@@ -119,6 +121,7 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
         destination.isRoute(MeterHistoryRoute::class) ||
         destination.isRoute(ConsumptionDetailRoute::class) ||
         destination.isRoute(ReportPreviewRoute::class) ||
+        destination.isRoute(EditProfileRoute) ||
         destination.isRoute(NewSiteRoute::class) ||
         destination.isRoute(EditSiteRoute::class) ||
         destination.isRoute(SiteDetailRoute::class)
@@ -256,7 +259,15 @@ fun MainNavHost(account: DrawerAccount?, onLogout: () -> Unit) {
                     )
                 }
                 composable<SubscriptionRoute> { SubscriptionScreen() }
-                composable<SettingsRoute> { ComingSoonScreen() }
+                composable<SettingsRoute> {
+                    SettingsScreen(
+                        onEditProfile = { navController.navigate(EditProfileRoute) },
+                        onLogout = onLogout,
+                    )
+                }
+                composable<EditProfileRoute> {
+                    EditProfileScreen(onBack = navController::popBackStack, onSaved = navController::popBackStack)
+                }
                 // Full-screen forms
                 composable<NewDeviceRoute> {
                     DeviceFormScreen(

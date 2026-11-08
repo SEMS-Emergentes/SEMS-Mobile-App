@@ -23,6 +23,25 @@ class FakeAlertRepository : AlertRepository {
         return listResult
     }
 
+    var preferencesResult: ApiResult<List<pe.edu.upc.sems.alerts.domain.model.NotificationPreference>> = ApiResult.Success(emptyList())
+
+    /** (channel, enabled, minSeverity) of every preference saved. */
+    val preferenceCalls = mutableListOf<Triple<String, Boolean, String?>>()
+    var preferenceFailure: ApiResult.Failure? = null
+
+    override suspend fun notificationPreferences(userId: String) = preferencesResult
+
+    override suspend fun setNotificationPreference(
+        userId: String,
+        channel: String,
+        enabled: Boolean,
+        minSeverity: String?,
+    ): ApiResult<pe.edu.upc.sems.alerts.domain.model.NotificationPreference> {
+        preferenceCalls += Triple(channel, enabled, minSeverity)
+        preferenceFailure?.let { return it }
+        return ApiResult.Success(pe.edu.upc.sems.alerts.domain.model.NotificationPreference(channel, enabled, minSeverity ?: "medium"))
+    }
+
     override suspend fun updateStatus(alertId: String, status: AlertStatus, resolvedAt: Instant?): ApiResult<Alert> {
         updateCalls += Triple(alertId, status, resolvedAt)
         updateFailure?.let { return it }

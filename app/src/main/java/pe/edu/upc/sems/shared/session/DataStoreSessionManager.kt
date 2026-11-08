@@ -83,6 +83,14 @@ class DataStoreSessionManager @Inject constructor(
         }
     }
 
+    override suspend fun updateProfile(fullName: String?, segment: String?) {
+        dataStore.edit { prefs ->
+            if (prefs[Keys.USER_ID] == null) return@edit
+            prefs.putOrRemove(Keys.FULL_NAME, fullName)
+            prefs.putOrRemove(Keys.SEGMENT, segment)
+        }
+    }
+
     override suspend fun clear() {
         dataStore.edit { it.clear() }
     }

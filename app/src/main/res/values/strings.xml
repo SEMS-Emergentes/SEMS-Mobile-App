@@ -651,4 +651,32 @@
     <string name="report_col_contracted">Contratada</string>
     <string name="report_col_use">Uso</string>
     <string name="report_no_readings">No hay lecturas en este período.</string>
+    <!-- Settings (Figma M25) -->
+    <string name="settings_edit_profile">Editar perfil</string>
+    <string name="settings_notifications">Notificaciones</string>
+    <string name="settings_email">Correo</string>
+    <string name="settings_email_hint">Avisos de alertas a tu correo</string>
+    <string name="settings_email_failed">No se pudo guardar. Inténtalo otra vez.</string>
+    <string name="settings_preferences">Preferencias</string>
+    <string name="settings_language">Idioma</string>
+    <string name="settings_language_spanish">Español</string>
+    <string name="settings_theme">Tema</string>
+    <string name="settings_theme_system">Según el sistema</string>
+    <string name="settings_theme_light">Claro</string>
+    <string name="settings_theme_dark">Oscuro</string>
+    <string name="settings_close">Cerrar</string>
+    <string name="settings_logout">Cerrar sesión</string>
+    <string name="settings_role_admin">Administrador</string>
+    <string name="settings_role_staff">Personal del establecimiento</string>
+    <string name="settings_name">Nombre para mostrar</string>
+    <string name="settings_name_required">Escribe tu nombre.</string>
+    <string name="settings_email_label">Correo electrónico</string>
+    <string name="settings_email_fixed">El correo no se puede cambiar aquí.</string>
+    <string name="settings_segment">Segmento</string>
+    <string name="settings_segment_hint">Personaliza las recomendaciones según tu perfil.</string>
+    <string name="settings_segment_chain">Cadena de retail</string>
+    <string name="settings_segment_chain_desc">Responsable de operaciones o mantenimiento de varios locales.</string>
+    <string name="settings_segment_independent">Establecimiento independiente</string>
+    <string name="settings_segment_independent_desc">Propietario o administrador de un único local.</string>
+    <string name="settings_save">Guardar cambios</string>
 </resources>
