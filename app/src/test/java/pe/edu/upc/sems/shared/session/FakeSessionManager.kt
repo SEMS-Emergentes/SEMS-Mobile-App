@@ -42,6 +42,10 @@ class FakeSessionManager(initial: Session? = null) : SessionManager {
         }
     }
 
+    override suspend fun updateProfile(fullName: String?, segment: String?) {
+        state.update { it?.copy(user = it.user.copy(fullName = fullName, segment = segment)) }
+    }
+
     override suspend fun clear() {
         clearCount.incrementAndGet()
         state.value = null

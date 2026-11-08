@@ -26,6 +26,9 @@ interface SessionManager {
      */
     suspend fun saveMembership(membership: SessionMembership?)
 
+    /** Stores the name and segment the user just saved in their profile. Does nothing when logged out. */
+    suspend fun updateProfile(fullName: String?, segment: String?)
+
     /** Removes everything (logout or 401). */
     suspend fun clear()
 }

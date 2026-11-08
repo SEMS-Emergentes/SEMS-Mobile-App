@@ -24,3 +24,19 @@ data class UpdateAlertStatusRequestDto(
     val status: String,
     @SerialName("resolved_at") val resolvedAt: String?,
 )
+
+/** A saved notification preference of the user (backend PreferenceResponse). */
+@Serializable
+data class NotificationPreferenceDto(
+    val channel: String? = null,
+    val enabled: Boolean = false,
+    @SerialName("min_severity") val minSeverity: String? = null,
+)
+
+@Serializable
+data class SaveNotificationPreferenceRequestDto(
+    @SerialName("user_id") val userId: String,
+    val channel: String,
+    val enabled: Boolean,
+    @SerialName("min_severity") val minSeverity: String,
+)
