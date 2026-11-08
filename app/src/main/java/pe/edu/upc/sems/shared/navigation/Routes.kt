@@ -98,6 +98,10 @@ data class LinkMeterRoute(val serial: String = "", val model: String? = null)
 @Serializable
 data class MeterHistoryRoute(val meterId: String)
 
+/** M22: preview of the monthly report of the days from [from] to [to] (ISO dates, both included). */
+@Serializable
+data class ReportPreviewRoute(val from: String, val to: String)
+
 /** M13: energy detail for one device. */
 @Serializable
 data class ConsumptionDetailRoute(val deviceId: String)

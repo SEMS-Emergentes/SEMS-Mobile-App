@@ -63,6 +63,7 @@ import pe.edu.upc.sems.analytics.domain.model.Recommendation
 import pe.edu.upc.sems.organizations.presentation.common.FormErrorBanner
 import pe.edu.upc.sems.shared.designsystem.SemsSpacing
 import pe.edu.upc.sems.shared.designsystem.components.LoadingScreen
+import pe.edu.upc.sems.shared.designsystem.components.PlanLock
 import pe.edu.upc.sems.shared.util.Formatters
 
 private const val NBSP = ' '
@@ -90,8 +91,9 @@ fun AnalyticsScreen(
             AnalyticsMessage.APPLIED -> appliedText
             AnalyticsMessage.ACTION_FAILED -> failedText
         }
-        viewModel.onMessageShown()
+        // Clearing the message first would change this effect's key and cancel the snackbar before it shows.
         snackbar.showSnackbar(text)
+        viewModel.onMessageShown()
     }
 
     Box(Modifier.fillMaxSize()) {
@@ -106,40 +108,10 @@ fun AnalyticsScreen(
                     offerRetry = true,
                 )
             }
-            state.locked -> LockedContent(onUpgrade)
+            state.locked -> PlanLock(R.string.analytics_locked_title, R.string.analytics_locked_body, onUpgrade)
             else -> AnalyticsContent(state, viewModel)
         }
         SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).padding(SemsSpacing.md))
-    }
-}
-
-@Composable
-private fun LockedContent(onUpgrade: () -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(SemsSpacing.lg),
-        verticalArrangement = Arrangement.spacedBy(SemsSpacing.md, Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer) {
-            Icon(
-                painterResource(R.drawable.ic_lock),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.padding(SemsSpacing.md).size(32.dp),
-            )
-        }
-        Text(
-            stringResource(R.string.analytics_locked_title),
-            style = MaterialTheme.typography.titleLarge,
-            textAlign = TextAlign.Center,
-        )
-        Text(
-            stringResource(R.string.analytics_locked_body),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
-        Button(onClick = onUpgrade) { Text(stringResource(R.string.analytics_locked_cta)) }
     }
 }
 
