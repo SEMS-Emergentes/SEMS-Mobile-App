@@ -26,7 +26,7 @@ enum class DrawerDestination(
     @param:StringRes val label: Int,
     @param:DrawableRes val icon: Int,
     @param:DrawableRes val selectedIcon: Int,
-    /** Visible only to ORG_ADMIN. Not enforced yet: the role comes from memberships (organizations task). */
+    /** Solo visible para ORG_ADMIN. Se aplica al construir el menu, en MainNavHost. */
     val requiresOrgAdmin: Boolean = false,
 ) {
     DEVICES(DevicesRoute, R.string.nav_devices, R.drawable.ic_devices, R.drawable.ic_devices_filled),

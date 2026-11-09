@@ -96,7 +96,6 @@ import pe.edu.upc.sems.organizations.presentation.siteselector.SiteSelectorSheet
 import pe.edu.upc.sems.organizations.presentation.siteselector.SiteSelectorViewModel
 import pe.edu.upc.sems.R
 import pe.edu.upc.sems.shared.designsystem.SemsSpacing
-import pe.edu.upc.sems.shared.designsystem.components.ComingSoonScreen
 
 /**
  * Main graph (logged in): top app bar, bottom NavigationBar for the four main sections and

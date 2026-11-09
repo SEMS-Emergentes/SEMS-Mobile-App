@@ -41,8 +41,6 @@
 
     <!-- Common states -->
     <string name="loading">Loading…</string>
-    <string name="coming_soon_title">Coming soon</string>
-    <string name="coming_soon_body">This section will be available soon.</string>
 
     <!-- Session -->
     <string name="session_expired">Your session expired. Sign in again.</string>
