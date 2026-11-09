@@ -37,10 +37,20 @@ jobs:
       # El proyecto compila contra compileSdk 36, que no todas las imagenes de
       # los runners traen. Se instala explicitamente para que el build no
       # dependa de lo que la imagen tenga ese dia.
+      #
+      # sdkmanager se busca en vez de invocarlo por su nombre: la imagen trae el
+      # SDK pero deja cmdline-tools en un directorio con numero de version que no
+      # esta en el PATH, asi que llamarlo a secas termina en "command not found".
       - name: Install the Android SDK packages the project needs
         run: |
-          yes | sdkmanager --licenses > /dev/null 2>&1 || true
-          sdkmanager "platforms;android-36" "build-tools;36.0.0"
+          sdk="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+          mgr="$(find "$sdk/cmdline-tools" -type f -name sdkmanager 2>/dev/null | head -1)"
+          if [ -z "$mgr" ]; then
+            echo "No se encontro sdkmanager bajo $sdk/cmdline-tools" >&2
+            exit 1
+          fi
+          yes | "$mgr" --licenses > /dev/null 2>&1 || true
+          "$mgr" "platforms;android-36" "build-tools;36.0.0"
 
       - name: Test
         run: ./gradlew --no-daemon testDebugUnitTest
