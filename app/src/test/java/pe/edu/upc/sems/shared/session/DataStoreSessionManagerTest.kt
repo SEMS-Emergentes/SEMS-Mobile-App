@@ -8,7 +8,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.job
 import kotlinx.coroutines.runBlocking
 import okio.FileSystem
 import okio.Path.Companion.toOkioPath
@@ -64,6 +66,21 @@ class DataStoreSessionManagerTest {
             scope = scope,
         ),
     )
+
+    /**
+     * Simula el reinicio de la app: un DataStore nuevo sobre el mismo archivo.
+     *
+     * Espera a que el scope termine en vez de solo cancelarlo porque DataStore
+     * no suelta el archivo hasta que su corrutina acaba, y abrir el segundo
+     * antes revienta con "multiple DataStores active for the same file". Con dos
+     * pruebas que reinician, cual de las dos fallaba dependia del orden en que
+     * JUnit decidiera correrlas.
+     */
+    private suspend fun restart(): DataStoreSessionManager {
+        scope.coroutineContext.job.cancelAndJoin()
+        scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+        return newManager()
+    }
 
     @Test
     fun `no session when nothing was saved`() = runBlocking {
@@ -135,11 +152,8 @@ class DataStoreSessionManagerTest {
     fun `session persists across instances`() = runBlocking {
         manager.saveLogin(tokens, user)
         manager.selectSite(site)
-        // Same file, new DataStore: simulates an app restart.
-        scope.cancel()
-        scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-        assertEquals(Session(tokens, user, site), newManager().session.first())
+        assertEquals(Session(tokens, user, site), restart().session.first())
     }
 
     private val membership = SessionMembership("org-1", "Cadena Flores S.A.C.", "SUPERVISOR", "site-1")
@@ -148,10 +162,8 @@ class DataStoreSessionManagerTest {
     fun `membership is stored and survives a restart`() = runBlocking {
         manager.saveLogin(tokens, user)
         manager.saveMembership(membership)
-        scope.cancel()
-        scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-        assertEquals(membership, newManager().session.first()?.membership)
+        assertEquals(membership, restart().session.first()?.membership)
     }
 
     @Test
