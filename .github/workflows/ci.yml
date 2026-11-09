@@ -1,0 +1,60 @@
+# Compila la aplicacion y ejecuta las pruebas unitarias en cada cambio.
+#
+# Hasta ahora este repositorio era el unico de SEMS sin integracion continua:
+# tenia 308 pruebas que nadie corria al abrir un pull request.
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+  workflow_dispatch:
+
+# Un push nuevo sobre la misma rama deja obsoleta la ejecucion anterior.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+
+      # Guarda ~/.gradle entre ejecuciones; sin esto cada build vuelve a
+      # descargar la distribucion de Gradle y todas las dependencias.
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # El proyecto compila contra compileSdk 36, que no todas las imagenes de
+      # los runners traen. Se instala explicitamente para que el build no
+      # dependa de lo que la imagen tenga ese dia.
+      - name: Install the Android SDK packages the project needs
+        run: |
+          yes | sdkmanager --licenses > /dev/null 2>&1 || true
+          sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Test
+        run: ./gradlew --no-daemon testDebugUnitTest
+
+      - name: Build
+        run: ./gradlew --no-daemon assembleDebug
+
+      # Los informes son lo unico que dice que prueba fallo cuando el log queda
+      # cortado, y se pierden al terminar el job si no se suben.
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-reports
+          path: app/build/reports/tests/testDebugUnitTest/
+          if-no-files-found: ignore
+          retention-days: 7
