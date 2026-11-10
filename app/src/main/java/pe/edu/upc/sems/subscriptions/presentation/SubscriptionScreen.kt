@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -24,6 +26,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -32,13 +35,16 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -64,25 +70,15 @@ private val DATE_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/
 @Composable
 fun SubscriptionScreen(viewModel: SubscriptionViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    // Also runs when the user comes back from paying: that is what applies the plan they paid for.
     LifecycleResumeEffect(Unit) {
         viewModel.refresh()
         onPauseOrDispose { }
     }
 
-    val uriHandler = LocalUriHandler.current
-    LaunchedEffect(state.checkoutUrl) {
-        val url = state.checkoutUrl ?: return@LaunchedEffect
-        viewModel.onCheckoutOpened()
-        uriHandler.openUri(url)
-    }
-
     val snackbar = remember { SnackbarHostState() }
     val messages = mapOf(
         SubscriptionMessage.PLAN_CHANGED to stringResource(R.string.subscription_plan_changed),
-        SubscriptionMessage.PAYMENT_NOT_FOUND to stringResource(R.string.subscription_payment_not_found),
         SubscriptionMessage.ACTION_FAILED to stringResource(R.string.subscription_action_failed),
-        SubscriptionMessage.PAYMENT_START_FAILED to stringResource(R.string.subscription_payment_start_failed),
     )
     LaunchedEffect(state.message) {
         val message = state.message ?: return@LaunchedEffect
@@ -109,15 +105,6 @@ fun SubscriptionScreen(viewModel: SubscriptionViewModel = hiltViewModel()) {
                 verticalArrangement = Arrangement.spacedBy(SemsSpacing.sm),
             ) {
                 item { CurrentPlanCard(content) }
-                state.awaitingPayment?.let { pending ->
-                    item {
-                        AwaitingPaymentCard(
-                            planName = pending.planName,
-                            onVerify = viewModel::onVerifyPayment,
-                            onDiscard = viewModel::onDiscardPending,
-                        )
-                    }
-                }
                 item {
                     Text(
                         stringResource(R.string.subscription_change_title),
@@ -130,13 +117,23 @@ fun SubscriptionScreen(viewModel: SubscriptionViewModel = hiltViewModel()) {
                         plan = plan,
                         isUpgrade = plan.priceSoles > (content.currentPlan?.priceSoles ?: 0.0),
                         busy = state.busyPlanId == plan.id,
-                        enabled = state.busyPlanId == null,
+                        enabled = state.busyPlanId == null && state.paying == null,
                         onChoose = { viewModel.onChoosePlan(plan) },
                     )
                 }
             }
         }
         SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).padding(SemsSpacing.md))
+    }
+
+    state.paying?.let { plan ->
+        PaymentDialog(
+            plan = plan,
+            purchasing = state.purchasing,
+            error = state.cardError,
+            onPay = viewModel::onPay,
+            onDismiss = viewModel::onDismissPayment,
+        )
     }
 }
 
@@ -189,23 +186,17 @@ private fun CurrentPlanCard(content: SubscriptionContent) {
                         )
                     }
                 }
-                subscription.renewalDate?.let { date -> NextChargeText(plan, date, content) }
+                subscription.renewalDate?.let { date -> NextChargeText(plan, date) }
             }
         }
     }
 }
 
 @Composable
-private fun NextChargeText(plan: Plan, date: LocalDate, content: SubscriptionContent) {
+private fun NextChargeText(plan: Plan, date: LocalDate) {
     // A free plan charges nothing, so there is no next charge to announce.
     if (plan.isFree) return
-    val card = content.card
-    val text = if (card != null) {
-        stringResource(R.string.subscription_next_charge_card, date.format(DATE_FORMAT), card.brand, card.last4)
-    } else {
-        stringResource(R.string.subscription_next_charge, date.format(DATE_FORMAT))
-    }
-    Text(text, style = MaterialTheme.typography.bodySmall)
+    Text(stringResource(R.string.subscription_next_charge, date.format(DATE_FORMAT)), style = MaterialTheme.typography.bodySmall)
 }
 
 @Composable
@@ -232,22 +223,98 @@ private fun StatusChip(status: SubscriptionStatus) {
     }
 }
 
+/**
+ * Formulario de tarjeta del pago simulado. Avisa de que no se cobra dinero real: sin el aviso, alguien podria
+ * escribir aqui su tarjeta de verdad creyendo que paga.
+ */
 @Composable
-private fun AwaitingPaymentCard(planName: String, onVerify: () -> Unit, onDiscard: () -> Unit) {
-    OutlinedCard(shape = MaterialTheme.shapes.large, modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(SemsSpacing.md), verticalArrangement = Arrangement.spacedBy(SemsSpacing.xs)) {
-            Text(stringResource(R.string.subscription_awaiting_title, planName), style = MaterialTheme.typography.titleMedium)
-            Text(
-                stringResource(R.string.subscription_awaiting_body),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(SemsSpacing.xs)) {
-                Button(onClick = onVerify) { Text(stringResource(R.string.subscription_awaiting_verify)) }
-                TextButton(onClick = onDiscard) { Text(stringResource(R.string.subscription_awaiting_discard)) }
+private fun PaymentDialog(
+    plan: Plan,
+    purchasing: Boolean,
+    error: CardError?,
+    onPay: (number: String, expiry: String, cvc: String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var number by remember { mutableStateOf("") }
+    var expiry by remember { mutableStateOf("") }
+    var cvc by remember { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.payment_title, plan.name)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(SemsSpacing.sm)) {
+                Surface(shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.secondaryContainer) {
+                    Column(Modifier.padding(SemsSpacing.sm)) {
+                        Text(stringResource(R.string.payment_simulated_title), style = MaterialTheme.typography.titleSmall)
+                        Text(stringResource(R.string.payment_simulated_body), style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+                Text(planPriceLine(plan), style = MaterialTheme.typography.titleMedium)
+                OutlinedTextField(
+                    value = number,
+                    // Se agrupa de cuatro en cuatro mientras se escribe, como en la tarjeta.
+                    onValueChange = { raw -> number = raw.filter(Char::isDigit).take(19).chunked(4).joinToString(" ") },
+                    label = { Text(stringResource(R.string.payment_card_number)) },
+                    placeholder = { Text("4242 4242 4242 4242") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(SemsSpacing.sm)) {
+                    OutlinedTextField(
+                        value = expiry,
+                        onValueChange = { raw ->
+                            val d = raw.filter(Char::isDigit).take(4)
+                            expiry = if (d.length > 2) "${d.take(2)}/${d.drop(2)}" else d
+                        },
+                        label = { Text(stringResource(R.string.payment_expiry)) },
+                        placeholder = { Text("MM/AA") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                    )
+                    OutlinedTextField(
+                        value = cvc,
+                        onValueChange = { raw -> cvc = raw.filter(Char::isDigit).take(4) },
+                        label = { Text("CVC") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                        visualTransformation = PasswordVisualTransformation(),
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                error?.let {
+                    Text(
+                        stringResource(
+                            when (it) {
+                                CardError.INCOMPLETE_NUMBER -> R.string.payment_error_number
+                                CardError.BAD_EXPIRY -> R.string.payment_error_expiry
+                                CardError.BAD_CVC -> R.string.payment_error_cvc
+                                CardError.INVALID -> R.string.payment_error_invalid
+                                CardError.DECLINED -> R.string.payment_error_declined
+                                CardError.INSUFFICIENT_FUNDS -> R.string.payment_error_funds
+                                CardError.FAILED -> R.string.payment_error_failed
+                            },
+                        ),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
             }
-        }
-    }
+        },
+        confirmButton = {
+            Button(onClick = { onPay(number, expiry, cvc) }, enabled = !purchasing) {
+                if (purchasing) {
+                    CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                    Spacer(Modifier.width(SemsSpacing.xs))
+                }
+                Text(stringResource(R.string.payment_pay, Formatters.soles(plan.priceSoles)))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, enabled = !purchasing) { Text(stringResource(R.string.payment_cancel)) }
+        },
+    )
 }
 
 @Composable

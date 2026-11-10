@@ -15,7 +15,6 @@ interface EnergyRepository {
     suspend fun listMetersBySite(siteId: String): ApiResult<List<EnergyMeter>>
     suspend fun createMeter(userId: String, siteId: String, zoneId: String?, draft: MeterDraft): ApiResult<EnergyMeter>
     suspend fun assignMeterZone(meterId: String, zoneId: String?): ApiResult<EnergyMeter>
-    suspend fun deactivateMeter(meterId: String): ApiResult<Unit>
     suspend fun deleteMeter(meterId: String): ApiResult<Unit>
     suspend fun latestMeterReading(meterId: String): ApiResult<EnergyReading?>
     suspend fun meterReadingHistory(userId: String, meterId: String, from: Instant, to: Instant): ApiResult<List<EnergyReading>>

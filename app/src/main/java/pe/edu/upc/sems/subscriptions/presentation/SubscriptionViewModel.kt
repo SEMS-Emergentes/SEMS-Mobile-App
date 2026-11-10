@@ -3,7 +3,6 @@ package pe.edu.upc.sems.subscriptions.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.time.Duration
 import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -14,18 +13,18 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import pe.edu.upc.sems.BuildConfig
 import pe.edu.upc.sems.organizations.domain.model.OrgStatus
 import pe.edu.upc.sems.organizations.domain.repository.OrganizationRepository
 import pe.edu.upc.sems.organizations.presentation.common.FormError
 import pe.edu.upc.sems.organizations.presentation.common.toFormError
+import pe.edu.upc.sems.shared.network.ApiError
 import pe.edu.upc.sems.shared.network.ApiResult
 import pe.edu.upc.sems.shared.session.SessionManager
-import pe.edu.upc.sems.subscriptions.domain.model.PaymentCard
-import pe.edu.upc.sems.subscriptions.domain.model.PendingPlanChange
+import pe.edu.upc.sems.subscriptions.domain.model.CardInput
+import pe.edu.upc.sems.subscriptions.domain.model.DeclineReason
 import pe.edu.upc.sems.subscriptions.domain.model.Plan
+import pe.edu.upc.sems.subscriptions.domain.model.PurchaseOutcome
 import pe.edu.upc.sems.subscriptions.domain.model.Subscription
-import pe.edu.upc.sems.subscriptions.domain.repository.PendingPlanStore
 import pe.edu.upc.sems.subscriptions.domain.repository.SubscriptionRepository
 
 /** What the screen shows once loaded. */
@@ -35,36 +34,33 @@ data class SubscriptionContent(
     val currentPlan: Plan?,
     /** Every other plan of the catalog, cheapest first. */
     val otherPlans: List<Plan>,
-    /** The default card, for "Próximo cobro". Null if the user has none or it could not be read. */
-    val card: PaymentCard?,
     /** Active sites of the organization, for "Locales usados". Null if it could not be read. */
     val sitesUsed: Int?,
 )
 
-enum class SubscriptionMessage { PLAN_CHANGED, PAYMENT_NOT_FOUND, ACTION_FAILED, PAYMENT_START_FAILED }
+enum class SubscriptionMessage { PLAN_CHANGED, ACTION_FAILED }
+
+/** Por que no se acepto la tarjeta; el dialogo lo muestra sin cerrarse. */
+enum class CardError { INCOMPLETE_NUMBER, BAD_EXPIRY, BAD_CVC, INVALID, DECLINED, INSUFFICIENT_FUNDS, FAILED }
 
 data class SubscriptionUiState(
     val isLoading: Boolean = true,
     val error: FormError? = null,
     val content: SubscriptionContent? = null,
-    /** The plan whose button was pressed and is being processed. */
+    /** The free plan whose button was pressed and is being applied. */
     val busyPlanId: String? = null,
-    /** The user went to pay and the payment has not shown up yet. */
-    val awaitingPayment: PendingPlanChange? = null,
-    /** Stripe's page to open; the screen opens it once and calls [SubscriptionViewModel.onCheckoutOpened]. */
-    val checkoutUrl: String? = null,
+    /** Plan de pago cuyo formulario de tarjeta esta abierto. */
+    val paying: Plan? = null,
+    val purchasing: Boolean = false,
+    val cardError: CardError? = null,
     val message: SubscriptionMessage? = null,
 )
-
-/** A payment counts for the pending plan if it was made after the user left to pay (with a margin for clocks). */
-private val CLOCK_MARGIN: Duration = Duration.ofMinutes(2)
 
 /** "Suscripción" (Figma M24; web: SubscriptionView.vue). Prices, limits and features are the backend's. */
 @HiltViewModel
 class SubscriptionViewModel @Inject constructor(
     private val subscriptions: SubscriptionRepository,
     private val organizations: OrganizationRepository,
-    private val pendingStore: PendingPlanStore,
     private val sessionManager: SessionManager,
 ) : ViewModel() {
 
@@ -73,7 +69,6 @@ class SubscriptionViewModel @Inject constructor(
 
     private var loadJob: Job? = null
 
-    /** Called when the screen is shown, which is also when the user comes back from paying. */
     fun refresh() {
         loadJob?.cancel()
         loadJob = viewModelScope.launch { load() }
@@ -83,42 +78,13 @@ class SubscriptionViewModel @Inject constructor(
         val userId = sessionManager.session.first()?.user?.userId ?: return
         if (_uiState.value.content == null) _uiState.update { it.copy(isLoading = true, error = null) }
 
-        var data = fetch(userId)
-        if (data == null) {
-            _uiState.update { if (it.content == null) it.copy(isLoading = false, error = lastError) else it.copy(isLoading = false) }
-            return
-        }
-
-        // The web applies the plan when Stripe sends the user back. Here the user comes back by hand, so the
-        // payment the backend recorded (the webhook) is what says that it was paid.
-        var message: SubscriptionMessage? = null
-        val pending = pendingStore.get()
-        var awaiting: PendingPlanChange? = null
-        if (pending != null) {
-            if (hasPaidSince(userId, pending)) {
-                when (subscriptions.changePlan(userId, data.subscription?.id, pending.planId)) {
-                    is ApiResult.Success -> {
-                        pendingStore.clear()
-                        message = SubscriptionMessage.PLAN_CHANGED
-                        data = fetch(userId) ?: data
-                    }
-                    is ApiResult.Failure -> {
-                        message = SubscriptionMessage.ACTION_FAILED
-                        awaiting = pending
-                    }
-                }
-            } else {
-                awaiting = pending
-            }
-        }
+        val data = fetch(userId)
         _uiState.update {
-            it.copy(
-                isLoading = false,
-                error = null,
-                content = data,
-                awaitingPayment = awaiting,
-                message = message ?: it.message,
-            )
+            when {
+                data != null -> it.copy(isLoading = false, error = null, content = data)
+                it.content == null -> it.copy(isLoading = false, error = lastError)
+                else -> it.copy(isLoading = false)
+            }
         }
     }
 
@@ -127,7 +93,6 @@ class SubscriptionViewModel @Inject constructor(
     private suspend fun fetch(userId: String): SubscriptionContent? = coroutineScope {
         val plans = async { subscriptions.plans() }
         val subscription = async { subscriptions.subscription(userId) }
-        val cards = async { subscriptions.paymentCards(userId) }
         val sites = async { activeSites(userId) }
 
         val catalog = when (val result = plans.await()) {
@@ -143,7 +108,6 @@ class SubscriptionViewModel @Inject constructor(
             subscription = current,
             currentPlan = currentPlan,
             otherPlans = catalog.filter { it.id != current?.planId }.sortedBy { it.priceSoles },
-            card = (cards.await() as? ApiResult.Success)?.data?.let { list -> list.firstOrNull { it.isDefault } ?: list.firstOrNull() },
             sitesUsed = sites.await(),
         )
     }
@@ -154,68 +118,80 @@ class SubscriptionViewModel @Inject constructor(
         return sites.count { it.status == OrgStatus.ACTIVE }
     }
 
-    private suspend fun hasPaidSince(userId: String, pending: PendingPlanChange): Boolean {
-        val payments = (subscriptions.payments(userId) as? ApiResult.Success)?.data ?: return false
-        val since = pending.startedAt.minus(CLOCK_MARGIN)
-        return payments.any { p ->
-            val at = p.paidAt ?: p.createdAt
-            p.processed && at != null && !at.isBefore(since)
+    /**
+     * "Cambiar a …" / "Mejorar plan". Un plan de pago abre el formulario de tarjeta; uno gratuito se contrata
+     * directo. Antes el de pago salia a Stripe y se aplicaba al volver, con lo que bastaba volver para tenerlo.
+     */
+    fun onChoosePlan(plan: Plan) {
+        if (_uiState.value.busyPlanId != null || _uiState.value.purchasing) return
+        if (!plan.isFree) {
+            _uiState.update { it.copy(paying = plan, cardError = null) }
+            return
+        }
+        _uiState.update { it.copy(busyPlanId = plan.id) }
+        viewModelScope.launch {
+            val userId = sessionManager.session.first()?.user?.userId ?: return@launch
+            when (subscriptions.purchase(userId, plan.id, card = null)) {
+                is ApiResult.Success -> {
+                    _uiState.update { it.copy(busyPlanId = null, message = SubscriptionMessage.PLAN_CHANGED) }
+                    load()
+                }
+                is ApiResult.Failure -> _uiState.update { it.copy(busyPlanId = null, message = SubscriptionMessage.ACTION_FAILED) }
+            }
         }
     }
 
     /**
-     * "Cambiar a …" / "Mejorar plan". A paid plan goes through Stripe Checkout and is applied once the payment
-     * is recorded; applying it first would leave the user with a plan they did not pay for if they give up.
-     * A free plan is changed right away.
+     * "Pagar" del formulario. [expiry] va como MM/AA. Lo evidente se revisa aqui para no gastar una llamada;
+     * el resto (digito de control, vencida) lo decide el backend.
      */
-    fun onChoosePlan(plan: Plan) {
-        if (_uiState.value.busyPlanId != null) return
-        _uiState.update { it.copy(busyPlanId = plan.id) }
+    fun onPay(number: String, expiry: String, cvc: String) {
+        val plan = _uiState.value.paying ?: return
+        if (_uiState.value.purchasing) return
+        val digits = number.filter(Char::isDigit)
+        val parts = expiry.split("/").map { it.trim() }
+        val month = parts.getOrNull(0)?.toIntOrNull()
+        val year = parts.getOrNull(1)?.takeIf { it.length == 2 }?.toIntOrNull()?.plus(2000)
+        val error = when {
+            digits.length < 13 -> CardError.INCOMPLETE_NUMBER
+            month == null || month !in 1..12 || year == null -> CardError.BAD_EXPIRY
+            !cvc.matches(Regex("\\d{3,4}")) -> CardError.BAD_CVC
+            else -> null
+        }
+        if (error != null) {
+            _uiState.update { it.copy(cardError = error) }
+            return
+        }
+        _uiState.update { it.copy(purchasing = true, cardError = null) }
         viewModelScope.launch {
             val userId = sessionManager.session.first()?.user?.userId ?: return@launch
-            val subscriptionId = _uiState.value.content?.subscription?.id
-            if (plan.isFree) {
-                when (subscriptions.changePlan(userId, subscriptionId, plan.id)) {
-                    is ApiResult.Success -> {
-                        _uiState.update { it.copy(busyPlanId = null, message = SubscriptionMessage.PLAN_CHANGED) }
+            val result = subscriptions.purchase(userId, plan.id, CardInput(digits, month!!, year!!, cvc))
+            when (result) {
+                is ApiResult.Success -> when (val outcome = result.data) {
+                    PurchaseOutcome.Purchased -> {
+                        _uiState.update {
+                            it.copy(purchasing = false, paying = null, message = SubscriptionMessage.PLAN_CHANGED)
+                        }
                         load()
                     }
-                    is ApiResult.Failure -> _uiState.update { it.copy(busyPlanId = null, message = SubscriptionMessage.ACTION_FAILED) }
+                    is PurchaseOutcome.Declined -> _uiState.update {
+                        it.copy(
+                            purchasing = false,
+                            cardError = if (outcome.reason == DeclineReason.INSUFFICIENT_FUNDS) CardError.INSUFFICIENT_FUNDS else CardError.DECLINED,
+                        )
+                    }
                 }
-                return@launch
-            }
-            val pending = PendingPlanChange(plan.id, plan.name, java.time.Instant.now())
-            pendingStore.set(pending)
-            val base = BuildConfig.WEB_APP_URL
-            when (val result = subscriptions.checkoutUrl(userId, subscriptionId, plan, "$base/subscription?paid=1", "$base/subscription?canceled=1")) {
-                is ApiResult.Success -> _uiState.update {
-                    it.copy(busyPlanId = null, checkoutUrl = result.data, awaitingPayment = pending)
-                }
-                is ApiResult.Failure -> {
-                    pendingStore.clear()
-                    _uiState.update { it.copy(busyPlanId = null, message = SubscriptionMessage.PAYMENT_START_FAILED) }
+                is ApiResult.Failure -> _uiState.update {
+                    val invalid = (result.error as? ApiError.Http)?.code == 400
+                    it.copy(purchasing = false, cardError = if (invalid) CardError.INVALID else CardError.FAILED)
                 }
             }
         }
     }
 
-    fun onCheckoutOpened() = _uiState.update { it.copy(checkoutUrl = null) }
-
-    /** "Ya pagué, verificar": looks for the payment again. */
-    fun onVerifyPayment() {
-        loadJob?.cancel()
-        loadJob = viewModelScope.launch {
-            load()
-            if (_uiState.value.awaitingPayment != null && _uiState.value.message == null) {
-                _uiState.update { it.copy(message = SubscriptionMessage.PAYMENT_NOT_FOUND) }
-            }
-        }
-    }
-
-    /** "Descartar": the user did not pay after all. */
-    fun onDiscardPending() {
-        pendingStore.clear()
-        _uiState.update { it.copy(awaitingPayment = null) }
+    fun onDismissPayment() {
+        if (_uiState.value.purchasing) return
+        _uiState.update { it.copy(paying = null, cardError = null) }
     }
 
     fun onMessageShown() = _uiState.update { it.copy(message = null) }

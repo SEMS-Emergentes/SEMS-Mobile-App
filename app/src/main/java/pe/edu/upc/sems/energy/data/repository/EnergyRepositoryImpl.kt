@@ -38,7 +38,6 @@ class EnergyRepositoryImpl @Inject constructor(
     override suspend fun assignMeterZone(meterId: String, zoneId: String?): ApiResult<EnergyMeter> =
         safeApiCall { service.assignZone(meterId, meterZoneBody(zoneId)) }.map { it.toDomain() }
 
-    override suspend fun deactivateMeter(meterId: String): ApiResult<Unit> = safeApiCall { service.deactivateMeter(meterId) }
     override suspend fun deleteMeter(meterId: String): ApiResult<Unit> = safeApiCall { service.deleteMeter(meterId) }
     override suspend fun latestMeterReading(meterId: String): ApiResult<EnergyReading?> =
         safeApiCall { service.latestMeterReading(meterId) }.map { it?.toDomain() }.noReadingsIfNotFound()

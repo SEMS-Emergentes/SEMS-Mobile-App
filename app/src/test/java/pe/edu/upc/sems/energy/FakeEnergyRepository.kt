@@ -38,7 +38,6 @@ class FakeEnergyRepository : EnergyRepository {
     override suspend fun listMetersBySite(siteId: String): ApiResult<List<EnergyMeter>> = metersBySiteResult
     override suspend fun createMeter(userId: String, siteId: String, zoneId: String?, draft: MeterDraft): ApiResult<EnergyMeter> = error("unused")
     override suspend fun assignMeterZone(meterId: String, zoneId: String?): ApiResult<EnergyMeter> = error("unused")
-    override suspend fun deactivateMeter(meterId: String): ApiResult<Unit> = error("unused")
     override suspend fun deleteMeter(meterId: String): ApiResult<Unit> = error("unused")
     override suspend fun latestMeterReading(meterId: String): ApiResult<EnergyReading?> = error("unused")
     override suspend fun meterReadingHistory(userId: String, meterId: String, from: Instant, to: Instant): ApiResult<List<EnergyReading>> = error("unused")

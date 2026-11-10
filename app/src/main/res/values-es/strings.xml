@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">SEMS</string>
-    <string name="app_company">Energix</string>
 
     <!-- Bottom navigation (same names as the web app's AppSidebar.vue) -->
     <string name="nav_dashboard">Resumen</string>
@@ -309,8 +308,6 @@
     <string name="zone_error_name_taken_body">Otra zona de este local ya tiene ese nombre.</string>
 
     <!-- Devices: Equipos tab (Figma M07, web: DevicesView.vue) -->
-    <string name="devices_tab_devices">Equipos</string>
-    <string name="devices_tab_meters">Medidores</string>
     <string name="devices_summary">%1$s · %2$s</string>
     <plurals name="devices_count">
         <item quantity="one">%1$d equipo</item>
@@ -375,8 +372,6 @@
     <string name="meters_filter_zone">Filtrar por zona</string>
     <string name="meters_filter_all_zones">Todas las zonas</string>
     <string name="meters_filter_all_statuses">Todos</string>
-    <string name="meters_link">Vincular</string>
-    <string name="meter_unassigned">Sin local ni zona asignados</string>
     <string name="meter_status_active">Activo</string>
     <string name="meter_status_inactive">Inactivo</string>
     <string name="meter_status_maintenance">En mantenimiento</string>
@@ -409,22 +404,15 @@
     <string name="meter_model_label">Modelo (opcional)</string>
     <string name="meter_site_label">Local</string>
     <string name="meter_zone_label">Zona</string>
-    <string name="meter_no_zones">Puedes vincular el medidor sin asignarle una zona.</string>
     <string name="meter_no_zone_option">Sin zona (opcional)</string>
     <string name="meter_no_sites">Necesitas acceso a un local para vincular un medidor.</string>
     <string name="meter_invalid_serial">Ingresa un serial válido (letras, números, punto, guion, guion bajo o dos puntos).</string>
     <string name="meter_link_submit">Vincular medidor</string>
     <string name="meter_link_error_title">No se pudo vincular el medidor</string>
     <string name="meter_link_error_body">Revisa la conexión y vuelve a intentarlo.</string>
-    <string name="monitoring_by_device">Por equipo</string>
-    <string name="monitoring_empty">No hay equipos en el local activo.</string>
     <string name="monitoring_detail_title">Detalle de consumo</string>
-    <string name="monitoring_device_unknown">Equipo no encontrado</string>
-    <string name="monitoring_no_readings">No hay lecturas de consumo para este equipo.</string>
-    <string name="monitoring_history_unavailable">El historial por períodos estará disponible cuando el backend entregue lecturas por equipo.</string>
     <string name="monitoring_meters_title">Medidores del local</string>
     <string name="monitoring_meters_description">Medidores IoT vinculados al local y, opcionalmente, a una zona.</string>
-    <string name="monitoring_site_context">Datos de %1$s</string>
     <string name="monitoring_select_site">Selecciona un local para consultar su monitoreo.</string>
     <string name="monitoring_by_zone">Consumo por zona</string>
     <string name="monitoring_days">%1$d días</string>
@@ -458,7 +446,6 @@
     <string name="dashboard_no_meters_body">Vincula un medidor en Monitoreo para consultar sus lecturas.</string>
     <string name="dashboard_open_monitoring">Ir a Monitoreo</string>
     <string name="value_unavailable">No disponible</string>
-    <string name="action_refresh">Actualizar</string>
 
     <!-- Alerts (Figma M14, M15, M16; web: AlertsView.vue) -->
     <string name="alerts_tab_active">Activas</string>
@@ -579,19 +566,26 @@
     <string name="subscription_sites_used">Locales usados</string>
     <string name="subscription_sites_used_of">%1$d de %2$d</string>
     <string name="subscription_next_charge">Próximo cobro: %1$s</string>
-    <string name="subscription_next_charge_card">Próximo cobro: %1$s · %2$s •••• %3$s</string>
     <string name="subscription_change_title">Cambiar de plan</string>
     <string name="subscription_recommended">Recomendado</string>
     <string name="subscription_change_to">Cambiar a %1$s</string>
     <string name="subscription_upgrade">Mejorar plan</string>
-    <string name="subscription_awaiting_title">Esperando tu pago del plan %1$s</string>
-    <string name="subscription_awaiting_body">Cuando termines de pagar en Stripe, vuelve aquí. Aplicaremos el plan en cuanto el pago quede registrado.</string>
-    <string name="subscription_awaiting_verify">Ya pagué, verificar</string>
-    <string name="subscription_awaiting_discard">Descartar</string>
     <string name="subscription_plan_changed">Plan actualizado.</string>
-    <string name="subscription_payment_not_found">Aún no vemos tu pago. Puede tardar unos segundos.</string>
     <string name="subscription_action_failed">No se pudo cambiar el plan. Inténtalo otra vez.</string>
-    <string name="subscription_payment_start_failed">No se pudo iniciar el pago. Inténtalo de nuevo.</string>
+    <string name="payment_title">Contratar %1$s</string>
+    <string name="payment_simulated_title">Pago simulado: no se cobra dinero real.</string>
+    <string name="payment_simulated_body">No uses una tarjeta real. Para probar: 4242 4242 4242 4242 se aprueba, 4000 0000 0000 0002 se rechaza. Cualquier vencimiento futuro y CVC.</string>
+    <string name="payment_card_number">Número de tarjeta</string>
+    <string name="payment_expiry">Vencimiento (MM/AA)</string>
+    <string name="payment_pay">Pagar %1$s</string>
+    <string name="payment_cancel">Cancelar</string>
+    <string name="payment_error_number">Escribe el número completo de la tarjeta.</string>
+    <string name="payment_error_expiry">El vencimiento va como MM/AA.</string>
+    <string name="payment_error_cvc">El CVC tiene 3 o 4 dígitos.</string>
+    <string name="payment_error_invalid">La tarjeta no es válida o está vencida.</string>
+    <string name="payment_error_declined">La tarjeta fue rechazada.</string>
+    <string name="payment_error_funds">Fondos insuficientes.</string>
+    <string name="payment_error_failed">No se pudo procesar el pago. Inténtalo de nuevo.</string>
     <string name="feature_basic_dashboard">Monitoreo del consumo del local</string>
     <string name="feature_consumption_alerts">Alertas de consumo</string>
     <plurals name="feature_sites_limit">
@@ -630,7 +624,6 @@
     <string name="reports_locked_title">Reportes mensuales</string>
     <string name="reports_locked_body">La generación de reportes en PDF está disponible desde el plan Business.</string>
     <string name="report_preview_title">Vista previa</string>
-    <string name="report_generating">Preparando el reporte…</string>
     <string name="report_saved">PDF guardado en Descargas.</string>
     <string name="report_save_failed">No se pudo guardar el PDF. Inténtalo otra vez.</string>
     <string name="report_share">Compartir</string>
