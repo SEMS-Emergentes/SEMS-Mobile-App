@@ -4,7 +4,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import retrofit2.http.Body
 import retrofit2.http.GET
-import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
 
@@ -17,20 +16,9 @@ interface SubscriptionService {
     @GET("subscriptions/users/{userId}")
     suspend fun listSubscriptions(@Path("userId") userId: String): List<SubscriptionDto>
 
-    @POST("subscriptions")
-    suspend fun createSubscription(@Body body: CreateSubscriptionRequestDto): SubscriptionDto
-
-    @PATCH("subscriptions/{subscriptionId}/change-plan")
-    suspend fun changePlan(@Path("subscriptionId") subscriptionId: String, @Body body: ChangePlanRequestDto): SubscriptionDto
-
-    @GET("payment-methods/user/{userId}")
-    suspend fun listPaymentMethods(@Path("userId") userId: String): List<PaymentMethodDto>
-
-    @GET("payments/user/{userId}")
-    suspend fun listPayments(@Path("userId") userId: String): List<PaymentDto>
-
-    @POST("payments/checkout-session")
-    suspend fun createCheckoutSession(@Body body: CheckoutRequestDto): CheckoutSessionDto
+    // Unica via para contratar un plan: el backend cobra la tarjeta (simulada) y decide el importe.
+    @POST("subscriptions/purchase")
+    suspend fun purchase(@Body body: PurchaseRequestDto): PurchaseResponseDto
 }
 
 // OJO: unlike the rest of the backend, the responses of the subscriptions module are PascalCase (@JsonProperty),
@@ -60,44 +48,21 @@ data class SubscriptionDto(
     @SerialName("EndDate") val endDate: String? = null,
 )
 
+// La tarjeta va solo cuando el plan cuesta; el importe no viaja, lo fija el plan guardado.
 @Serializable
-data class CreateSubscriptionRequestDto(
+data class PurchaseRequestDto(
+    @SerialName("user_id") val userId: String,
     @SerialName("plan_id") val planId: String,
-    @SerialName("user_id") val userId: String,
-)
+    @SerialName("card_number") val cardNumber: String? = null,
+    @SerialName("exp_month") val expMonth: Int? = null,
+    @SerialName("exp_year") val expYear: Int? = null,
+    val cvc: String? = null,
+) {
+    // Un data class imprime todos sus campos: sin esto, un log de la peticion escribiria el numero y el CVC.
+    override fun toString() = "PurchaseRequestDto(userId=$userId, planId=$planId, card=****)"
+}
 
 @Serializable
-data class ChangePlanRequestDto(
-    @SerialName("new_plan_id") val newPlanId: String,
-)
-
-@Serializable
-data class PaymentMethodDto(
-    val brand: String? = null,
-    val last4: String? = null,
-    @SerialName("is_default") val isDefault: Boolean = false,
-)
-
-@Serializable
-data class PaymentDto(
-    /** `pending`, `processing`, `processed`, `failed` or `cancelled`. */
-    val status: String? = null,
-    @SerialName("paid_at") val paidAt: String? = null,
-    @SerialName("created_at") val createdAt: String? = null,
-)
-
-@Serializable
-data class CheckoutRequestDto(
-    @SerialName("user_id") val userId: String,
-    @SerialName("subscription_id") val subscriptionId: String?,
-    @SerialName("plan_name") val planName: String,
-    val amount: Double,
-    val currency: String,
-    @SerialName("success_url") val successUrl: String,
-    @SerialName("cancel_url") val cancelUrl: String,
-)
-
-@Serializable
-data class CheckoutSessionDto(
-    val url: String? = null,
+data class PurchaseResponseDto(
+    @SerialName("Subscription") val subscription: SubscriptionDto? = null,
 )

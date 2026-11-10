@@ -1,6 +1,5 @@
 package pe.edu.upc.sems.subscriptions.domain.model
 
-import java.time.Instant
 import java.time.LocalDate
 
 /** One characteristic of a plan as the backend lists it (`PlanFeatures`). The app words it in Spanish by [code]. */
@@ -46,10 +45,28 @@ data class Subscription(
     val renewalDate: LocalDate?,
 )
 
-data class PaymentCard(val brand: String, val last4: String, val isDefault: Boolean)
+/** Datos de tarjeta tal como se escriben. No se guardan: viajan una vez al backend, que los valida y los descarta. */
+data class CardInput(val number: String, val expMonth: Int, val expYear: Int, val cvc: String) {
+    // Sin esto, cualquier log del estado escribiria el numero completo y el CVC.
+    override fun toString() = "CardInput(****)"
+}
 
-/** A payment of the user; the plan change is only applied once one of them is processed. */
-data class Payment(val paidAt: Instant?, val createdAt: Instant?, val processed: Boolean)
+/** Como termina una compra que el backend llego a procesar. */
+sealed interface PurchaseOutcome {
+    data object Purchased : PurchaseOutcome
 
-/** A paid plan the user left the app to pay for and that has not been applied yet. */
-data class PendingPlanChange(val planId: String, val planName: String, val startedAt: Instant)
+    /** El cobro se rechazo: el plan no cambio y el intento queda en el historial. */
+    data class Declined(val reason: DeclineReason) : PurchaseOutcome
+}
+
+enum class DeclineReason {
+    CARD_DECLINED, INSUFFICIENT_FUNDS, OTHER;
+
+    companion object {
+        fun from(raw: String?): DeclineReason = when (raw) {
+            "card_declined" -> CARD_DECLINED
+            "insufficient_funds" -> INSUFFICIENT_FUNDS
+            else -> OTHER
+        }
+    }
+}

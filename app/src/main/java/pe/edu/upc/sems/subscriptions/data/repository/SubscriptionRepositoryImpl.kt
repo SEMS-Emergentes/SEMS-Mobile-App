@@ -8,15 +8,14 @@ import pe.edu.upc.sems.shared.network.ApiResult
 import pe.edu.upc.sems.shared.network.map
 import pe.edu.upc.sems.shared.network.safeApiCall
 import pe.edu.upc.sems.subscriptions.data.mapper.toDomain
-import pe.edu.upc.sems.subscriptions.data.remote.ChangePlanRequestDto
-import pe.edu.upc.sems.subscriptions.data.remote.CheckoutRequestDto
-import pe.edu.upc.sems.subscriptions.data.remote.CreateSubscriptionRequestDto
+import pe.edu.upc.sems.subscriptions.data.remote.PurchaseRequestDto
 import pe.edu.upc.sems.subscriptions.data.remote.SubscriptionDto
 import pe.edu.upc.sems.subscriptions.data.remote.SubscriptionService
-import pe.edu.upc.sems.subscriptions.domain.model.Payment
-import pe.edu.upc.sems.subscriptions.domain.model.PaymentCard
+import pe.edu.upc.sems.subscriptions.domain.model.CardInput
+import pe.edu.upc.sems.subscriptions.domain.model.DeclineReason
 import pe.edu.upc.sems.subscriptions.domain.model.Plan
 import pe.edu.upc.sems.subscriptions.domain.model.PlanTier
+import pe.edu.upc.sems.subscriptions.domain.model.PurchaseOutcome
 import pe.edu.upc.sems.subscriptions.domain.model.Subscription
 import pe.edu.upc.sems.subscriptions.domain.model.SubscriptionStatus
 import pe.edu.upc.sems.subscriptions.domain.repository.SubscriptionRepository
@@ -50,46 +49,26 @@ class SubscriptionRepositoryImpl @Inject constructor(
     override suspend fun subscription(userId: String): ApiResult<Subscription?> =
         subscriptionDtos(userId).map { subs -> (subs.firstOrNull { it.isActive() } ?: subs.firstOrNull())?.toDomain() }
 
-    override suspend fun paymentCards(userId: String): ApiResult<List<PaymentCard>> =
-        safeApiCall { service.listPaymentMethods(userId) }.map { list -> list.map { it.toDomain() } }
-
-    override suspend fun payments(userId: String): ApiResult<List<Payment>> =
-        safeApiCall { service.listPayments(userId) }.map { list -> list.map { it.toDomain() } }
-
-    override suspend fun changePlan(userId: String, subscriptionId: String?, planId: String): ApiResult<Subscription> =
-        safeApiCall {
-            if (subscriptionId != null) {
-                service.changePlan(subscriptionId, ChangePlanRequestDto(planId))
-            } else {
-                service.createSubscription(CreateSubscriptionRequestDto(planId, userId))
-            }
-        }.map { it.toDomain() }
-
-    override suspend fun checkoutUrl(
-        userId: String,
-        subscriptionId: String?,
-        plan: Plan,
-        successUrl: String,
-        cancelUrl: String,
-    ): ApiResult<String> {
+    override suspend fun purchase(userId: String, planId: String, card: CardInput?): ApiResult<PurchaseOutcome> {
         val result = safeApiCall {
-            service.createCheckoutSession(
-                CheckoutRequestDto(
+            service.purchase(
+                PurchaseRequestDto(
                     userId = userId,
-                    subscriptionId = subscriptionId,
-                    planName = "SEMS ${plan.name}",
-                    amount = plan.priceSoles,
-                    currency = "pen",
-                    successUrl = successUrl,
-                    cancelUrl = cancelUrl,
+                    planId = planId,
+                    cardNumber = card?.number,
+                    expMonth = card?.expMonth,
+                    expYear = card?.expYear,
+                    cvc = card?.cvc,
                 ),
             )
         }
         return when (result) {
-            is ApiResult.Success -> result.data.url?.takeIf { it.isNotBlank() }
-                ?.let { ApiResult.Success(it) }
-                ?: ApiResult.Failure(ApiError.Unknown(IllegalStateException("Checkout without url")))
-            is ApiResult.Failure -> result
+            is ApiResult.Success -> ApiResult.Success(PurchaseOutcome.Purchased)
+            // 402 es la respuesta del backend a un cobro rechazado; su mensaje es el motivo.
+            is ApiResult.Failure -> (result.error as? ApiError.Http)
+                ?.takeIf { it.code == 402 }
+                ?.let { ApiResult.Success(PurchaseOutcome.Declined(DeclineReason.from(it.message))) }
+                ?: result
         }
     }
 

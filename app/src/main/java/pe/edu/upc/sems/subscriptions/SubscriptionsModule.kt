@@ -19,10 +19,6 @@ abstract class SubscriptionsModule {
     @Singleton
     abstract fun bindSubscriptionRepository(impl: SubscriptionRepositoryImpl): SubscriptionRepository
 
-    @Binds
-    abstract fun bindPendingPlanStore(impl: pe.edu.upc.sems.subscriptions.data.repository.SharedPrefsPendingPlanStore):
-        pe.edu.upc.sems.subscriptions.domain.repository.PendingPlanStore
-
     companion object {
         @Provides
         @Singleton

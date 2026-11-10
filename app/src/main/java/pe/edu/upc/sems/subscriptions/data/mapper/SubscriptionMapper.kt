@@ -2,12 +2,8 @@ package pe.edu.upc.sems.subscriptions.data.mapper
 
 import java.time.Instant
 import java.time.ZoneId
-import pe.edu.upc.sems.subscriptions.data.remote.PaymentDto
-import pe.edu.upc.sems.subscriptions.data.remote.PaymentMethodDto
 import pe.edu.upc.sems.subscriptions.data.remote.PlanDto
 import pe.edu.upc.sems.subscriptions.data.remote.SubscriptionDto
-import pe.edu.upc.sems.subscriptions.domain.model.Payment
-import pe.edu.upc.sems.subscriptions.domain.model.PaymentCard
 import pe.edu.upc.sems.subscriptions.domain.model.Plan
 import pe.edu.upc.sems.subscriptions.domain.model.PlanFeature
 import pe.edu.upc.sems.subscriptions.domain.model.SiteLimit
@@ -41,19 +37,6 @@ fun SubscriptionDto.toDomain() = Subscription(
     planId = planId.orEmpty(),
     status = SubscriptionStatus.from(status),
     renewalDate = endDate.toInstantOrNull()?.atZone(LIMA)?.toLocalDate(),
-)
-
-fun PaymentMethodDto.toDomain() = PaymentCard(
-    brand = brand?.replaceFirstChar { it.uppercase() } ?: "Tarjeta",
-    last4 = last4 ?: "····",
-    isDefault = isDefault,
-)
-
-fun PaymentDto.toDomain() = Payment(
-    paidAt = paidAt.toInstantOrNull(),
-    createdAt = createdAt.toInstantOrNull(),
-    // The backend's success status is "processed" (the web looks for "paid", which never arrives).
-    processed = status.equals("processed", ignoreCase = true),
 )
 
 private fun String?.toInstantOrNull(): Instant? = this?.let { runCatching { Instant.parse(it) }.getOrNull() }

@@ -1,6 +1,5 @@
 package pe.edu.upc.sems.subscriptions
 
-import java.time.Instant
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -24,15 +23,15 @@ import pe.edu.upc.sems.shared.session.SessionUser
 import pe.edu.upc.sems.subscriptions.FakeSubscriptionRepository.Companion.BUSINESS
 import pe.edu.upc.sems.subscriptions.FakeSubscriptionRepository.Companion.ENTERPRISE
 import pe.edu.upc.sems.subscriptions.FakeSubscriptionRepository.Companion.STARTER
-import pe.edu.upc.sems.subscriptions.FakeSubscriptionRepository.Companion.payment
 import pe.edu.upc.sems.subscriptions.data.mapper.toDomain
-import pe.edu.upc.sems.subscriptions.data.remote.PaymentDto
 import pe.edu.upc.sems.subscriptions.data.remote.PlanDto
 import pe.edu.upc.sems.subscriptions.data.remote.SubscriptionDto
-import pe.edu.upc.sems.subscriptions.domain.model.PaymentCard
-import pe.edu.upc.sems.subscriptions.domain.model.PendingPlanChange
+import pe.edu.upc.sems.subscriptions.domain.model.CardInput
+import pe.edu.upc.sems.subscriptions.domain.model.DeclineReason
+import pe.edu.upc.sems.subscriptions.domain.model.PurchaseOutcome
 import pe.edu.upc.sems.subscriptions.domain.model.SiteLimit
 import pe.edu.upc.sems.subscriptions.domain.model.SubscriptionStatus
+import pe.edu.upc.sems.subscriptions.presentation.CardError
 import pe.edu.upc.sems.subscriptions.presentation.SubscriptionMessage
 import pe.edu.upc.sems.subscriptions.presentation.SubscriptionViewModel
 import pe.edu.upc.sems.testing.MainDispatcherRule
@@ -74,10 +73,15 @@ class SubscriptionTest {
     }
 
     @Test
-    fun `only a processed payment counts as paid`() {
-        assertTrue(PaymentDto(status = "processed").toDomain().processed)
-        assertFalse(PaymentDto(status = "pending").toDomain().processed)
-        assertFalse(PaymentDto(status = "failed").toDomain().processed)
+    fun `the decline reason the backend sends is understood`() {
+        assertEquals(DeclineReason.CARD_DECLINED, DeclineReason.from("card_declined"))
+        assertEquals(DeclineReason.INSUFFICIENT_FUNDS, DeclineReason.from("insufficient_funds"))
+        assertEquals(DeclineReason.OTHER, DeclineReason.from(null))
+    }
+
+    @Test
+    fun `a card never prints its number`() {
+        assertFalse(CardInput("4242424242424242", 12, 2099, "123").toString().contains("4242"))
     }
 
     @Test
@@ -98,9 +102,7 @@ class SubscriptionTest {
         myOrganizationResult = ApiResult.Success(FakeOrganizationRepository.access(MembershipRole.ORG_ADMIN))
         listSitesResult = ApiResult.Success(listOf(FakeOrganizationRepository.SITE))
     }
-    private val store = FakePendingPlanStore()
-
-    private fun viewModel() = SubscriptionViewModel(subscriptions, organizations, store, sessionManager)
+    private fun viewModel() = SubscriptionViewModel(subscriptions, organizations, sessionManager)
 
     private fun TestScope.load(viewModel: SubscriptionViewModel) {
         viewModel.refresh()
@@ -109,7 +111,6 @@ class SubscriptionTest {
 
     @Test
     fun `shows the current plan and offers the other ones, cheapest first`() = runTest(mainRule.dispatcher) {
-        subscriptions.cardsResult = ApiResult.Success(listOf(PaymentCard("Visa", "4821", isDefault = true)))
         val viewModel = viewModel()
 
         load(viewModel)
@@ -117,7 +118,6 @@ class SubscriptionTest {
         val content = viewModel.uiState.value.content!!
         assertEquals("Business", content.currentPlan!!.name)
         assertEquals(listOf("Starter", "Enterprise"), content.otherPlans.map { it.name })
-        assertEquals("4821", content.card!!.last4)
         assertEquals(1, content.sitesUsed) // the organization's only active site
     }
 
@@ -145,93 +145,101 @@ class SubscriptionTest {
     }
 
     @Test
-    fun `a free plan is applied right away`() = runTest(mainRule.dispatcher) {
+    fun `a free plan is applied right away, without a card`() = runTest(mainRule.dispatcher) {
         val viewModel = viewModel()
         load(viewModel)
 
         viewModel.onChoosePlan(STARTER)
         advanceUntilIdle()
 
-        assertEquals(listOf("sub-1" to STARTER.id), subscriptions.changeCalls)
-        assertTrue(subscriptions.checkoutCalls.isEmpty())
+        assertEquals(listOf(STARTER.id to null), subscriptions.purchaseCalls)
+        assertNull(viewModel.uiState.value.paying)
         assertEquals(SubscriptionMessage.PLAN_CHANGED, viewModel.uiState.value.message)
-        assertNull(store.pending)
     }
 
     @Test
-    fun `a paid plan goes to Stripe first and is not applied until it is paid`() = runTest(mainRule.dispatcher) {
+    fun `a paid plan asks for the card and is not bought until it is paid`() = runTest(mainRule.dispatcher) {
         val viewModel = viewModel()
         load(viewModel)
 
         viewModel.onChoosePlan(ENTERPRISE)
+        advanceUntilIdle()
+
+        assertEquals(ENTERPRISE, viewModel.uiState.value.paying)
+        assertTrue(subscriptions.purchaseCalls.isEmpty())
+    }
+
+    @Test
+    fun `paying with an approved card buys the plan and closes the form`() = runTest(mainRule.dispatcher) {
+        val viewModel = viewModel()
+        load(viewModel)
+        viewModel.onChoosePlan(ENTERPRISE)
+
+        viewModel.onPay("4242 4242 4242 4242", "12/29", "123")
+        advanceUntilIdle()
+
+        val (planId, card) = subscriptions.purchaseCalls.single()
+        assertEquals(ENTERPRISE.id, planId)
+        assertEquals(CardInput("4242424242424242", 12, 2029, "123"), card)
+        assertNull(viewModel.uiState.value.paying)
+        assertEquals(SubscriptionMessage.PLAN_CHANGED, viewModel.uiState.value.message)
+    }
+
+    @Test
+    fun `a declined card keeps the form open and says why`() = runTest(mainRule.dispatcher) {
+        subscriptions.purchaseResult = ApiResult.Success(PurchaseOutcome.Declined(DeclineReason.INSUFFICIENT_FUNDS))
+        val viewModel = viewModel()
+        load(viewModel)
+        viewModel.onChoosePlan(ENTERPRISE)
+
+        viewModel.onPay("4000 0000 0000 9995", "12/29", "123")
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
-        assertEquals("https://checkout.stripe.test/session", state.checkoutUrl)
-        assertTrue(subscriptions.changeCalls.isEmpty())
-        assertEquals(ENTERPRISE.id, store.pending!!.planId)
-        assertEquals(ENTERPRISE.id, state.awaitingPayment!!.planId)
+        assertEquals(ENTERPRISE, state.paying)
+        assertEquals(CardError.INSUFFICIENT_FUNDS, state.cardError)
+        assertNull(state.message)
     }
 
     @Test
-    fun `if Stripe cannot be opened nothing stays pending`() = runTest(mainRule.dispatcher) {
-        subscriptions.checkoutResult = ApiResult.Failure(ApiError.Http(500, "boom"))
+    fun `an obviously incomplete card is not sent`() = runTest(mainRule.dispatcher) {
         val viewModel = viewModel()
         load(viewModel)
-
         viewModel.onChoosePlan(ENTERPRISE)
+
+        viewModel.onPay("4242", "12/29", "123")
+        assertEquals(CardError.INCOMPLETE_NUMBER, viewModel.uiState.value.cardError)
+        viewModel.onPay("4242 4242 4242 4242", "13/29", "123")
+        assertEquals(CardError.BAD_EXPIRY, viewModel.uiState.value.cardError)
+        viewModel.onPay("4242 4242 4242 4242", "12/29", "1")
+        assertEquals(CardError.BAD_CVC, viewModel.uiState.value.cardError)
         advanceUntilIdle()
 
-        assertNull(store.pending)
-        assertNull(viewModel.uiState.value.checkoutUrl)
-        assertEquals(SubscriptionMessage.PAYMENT_START_FAILED, viewModel.uiState.value.message)
+        assertTrue(subscriptions.purchaseCalls.isEmpty())
     }
 
     @Test
-    fun `coming back after paying applies the plan once the payment is recorded`() = runTest(mainRule.dispatcher) {
-        store.pending = PendingPlanChange(ENTERPRISE.id, "Enterprise", Instant.parse("2026-11-06T10:00:00Z"))
-        subscriptions.paymentsResult = ApiResult.Success(listOf(payment(processed = true, at = "2026-11-06T10:03:00Z")))
-        val viewModel = viewModel()
-
-        load(viewModel)
-
-        assertEquals(listOf("sub-1" to ENTERPRISE.id), subscriptions.changeCalls)
-        assertNull(store.pending)
-        assertNull(viewModel.uiState.value.awaitingPayment)
-        assertEquals(SubscriptionMessage.PLAN_CHANGED, viewModel.uiState.value.message)
-    }
-
-    @Test
-    fun `a payment made before leaving, or not processed, does not apply the plan`() = runTest(mainRule.dispatcher) {
-        store.pending = PendingPlanChange(ENTERPRISE.id, "Enterprise", Instant.parse("2026-11-06T10:00:00Z"))
-        subscriptions.paymentsResult = ApiResult.Success(
-            listOf(
-                payment(processed = true, at = "2026-10-01T10:00:00Z"), // an old payment
-                payment(processed = false, at = "2026-11-06T10:03:00Z"), // not processed
-            ),
-        )
-        val viewModel = viewModel()
-
-        load(viewModel)
-
-        assertTrue(subscriptions.changeCalls.isEmpty())
-        assertEquals(ENTERPRISE.id, viewModel.uiState.value.awaitingPayment!!.planId)
-        assertNotNull(store.pending)
-    }
-
-    @Test
-    fun `verifying with no payment yet says so, and discarding forgets the pending plan`() = runTest(mainRule.dispatcher) {
-        store.pending = PendingPlanChange(ENTERPRISE.id, "Enterprise", Instant.parse("2026-11-06T10:00:00Z"))
+    fun `a card the backend rejects as invalid is reported as such`() = runTest(mainRule.dispatcher) {
+        subscriptions.purchaseResult = ApiResult.Failure(ApiError.Http(400, "card_number is not a valid card number"))
         val viewModel = viewModel()
         load(viewModel)
+        viewModel.onChoosePlan(ENTERPRISE)
 
-        viewModel.onVerifyPayment()
+        viewModel.onPay("4242 4242 4242 4241", "12/29", "123")
         advanceUntilIdle()
-        assertEquals(SubscriptionMessage.PAYMENT_NOT_FOUND, viewModel.uiState.value.message)
 
-        viewModel.onDiscardPending()
-        assertNull(store.pending)
-        assertNull(viewModel.uiState.value.awaitingPayment)
+        assertEquals(CardError.INVALID, viewModel.uiState.value.cardError)
+    }
+
+    @Test
+    fun `closing the form forgets the plan`() = runTest(mainRule.dispatcher) {
+        val viewModel = viewModel()
+        load(viewModel)
+        viewModel.onChoosePlan(ENTERPRISE)
+
+        viewModel.onDismissPayment()
+
+        assertNull(viewModel.uiState.value.paying)
     }
 
     // endregion
