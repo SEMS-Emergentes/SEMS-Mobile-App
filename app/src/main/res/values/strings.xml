@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">SEMS</string>
-    <string name="app_company">Energix</string>
 
     <!-- Bottom navigation (same names as the web app's AppSidebar.vue) -->
     <string name="nav_dashboard">Dashboard</string>
@@ -307,8 +306,6 @@
     <string name="zone_error_name_taken_body">Another zone of this site already has that name.</string>
 
     <!-- Devices: Devices tab (Figma M07, web: DevicesView.vue) -->
-    <string name="devices_tab_devices">Devices</string>
-    <string name="devices_tab_meters">Meters</string>
     <string name="devices_summary">%1$s · %2$s</string>
     <plurals name="devices_count">
         <item quantity="one">%1$d device</item>
@@ -372,8 +369,6 @@
     <string name="meters_filter_zone">Filter by zone</string>
     <string name="meters_filter_all_zones">All zones</string>
     <string name="meters_filter_all_statuses">All</string>
-    <string name="meters_link">Link</string>
-    <string name="meter_unassigned">No site or zone assigned</string>
     <string name="meter_status_active">Active</string>
     <string name="meter_status_inactive">Inactive</string>
     <string name="meter_status_maintenance">Under maintenance</string>
@@ -406,22 +401,15 @@
     <string name="meter_model_label">Model (optional)</string>
     <string name="meter_site_label">Site</string>
     <string name="meter_zone_label">Zone</string>
-    <string name="meter_no_zones">You can link the meter without assigning it a zone.</string>
     <string name="meter_no_zone_option">No zone (optional)</string>
     <string name="meter_no_sites">You need access to a site to link a meter.</string>
     <string name="meter_invalid_serial">Enter a valid serial number (letters, numbers, period, hyphen, underscore or colon).</string>
     <string name="meter_link_submit">Link meter</string>
     <string name="meter_link_error_title">The meter could not be linked</string>
     <string name="meter_link_error_body">Check the connection and try again.</string>
-    <string name="monitoring_by_device">By device</string>
-    <string name="monitoring_empty">There are no devices in the active site.</string>
     <string name="monitoring_detail_title">Consumption detail</string>
-    <string name="monitoring_device_unknown">Device not found</string>
-    <string name="monitoring_no_readings">There are no consumption readings for this device.</string>
-    <string name="monitoring_history_unavailable">The history by period will be available once the backend delivers readings per device.</string>
     <string name="monitoring_meters_title">Meters of the site</string>
     <string name="monitoring_meters_description">IoT meters linked to the site and, optionally, to a zone.</string>
-    <string name="monitoring_site_context">Data of %1$s</string>
     <string name="monitoring_select_site">Select a site to see its monitoring.</string>
     <string name="monitoring_by_zone">Consumption by zone</string>
     <string name="monitoring_days">%1$d days</string>
@@ -455,7 +443,6 @@
     <string name="dashboard_no_meters_body">Link a meter in Monitoring to see its readings.</string>
     <string name="dashboard_open_monitoring">Go to Monitoring</string>
     <string name="value_unavailable">Not available</string>
-    <string name="action_refresh">Refresh</string>
 
     <!-- Alerts (Figma M14, M15, M16; web: AlertsView.vue) -->
     <string name="alerts_tab_active">Active</string>
@@ -628,7 +615,6 @@
     <string name="reports_locked_title">Monthly reports</string>
     <string name="reports_locked_body">PDF report generation is available from the Business plan.</string>
     <string name="report_preview_title">Preview</string>
-    <string name="report_generating">Preparing the report…</string>
     <string name="report_saved">PDF saved to Downloads.</string>
     <string name="report_save_failed">The PDF could not be saved. Try again.</string>
     <string name="report_share">Share</string>

@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">SEMS</string>
-    <string name="app_company">Energix</string>
 
     <!-- Bottom navigation (same names as the web app's AppSidebar.vue) -->
     <string name="nav_dashboard">Resumen</string>
@@ -309,8 +308,6 @@
     <string name="zone_error_name_taken_body">Otra zona de este local ya tiene ese nombre.</string>
 
     <!-- Devices: Equipos tab (Figma M07, web: DevicesView.vue) -->
-    <string name="devices_tab_devices">Equipos</string>
-    <string name="devices_tab_meters">Medidores</string>
     <string name="devices_summary">%1$s · %2$s</string>
     <plurals name="devices_count">
         <item quantity="one">%1$d equipo</item>
@@ -375,8 +372,6 @@
     <string name="meters_filter_zone">Filtrar por zona</string>
     <string name="meters_filter_all_zones">Todas las zonas</string>
     <string name="meters_filter_all_statuses">Todos</string>
-    <string name="meters_link">Vincular</string>
-    <string name="meter_unassigned">Sin local ni zona asignados</string>
     <string name="meter_status_active">Activo</string>
     <string name="meter_status_inactive">Inactivo</string>
     <string name="meter_status_maintenance">En mantenimiento</string>
@@ -409,22 +404,15 @@
     <string name="meter_model_label">Modelo (opcional)</string>
     <string name="meter_site_label">Local</string>
     <string name="meter_zone_label">Zona</string>
-    <string name="meter_no_zones">Puedes vincular el medidor sin asignarle una zona.</string>
     <string name="meter_no_zone_option">Sin zona (opcional)</string>
     <string name="meter_no_sites">Necesitas acceso a un local para vincular un medidor.</string>
     <string name="meter_invalid_serial">Ingresa un serial válido (letras, números, punto, guion, guion bajo o dos puntos).</string>
     <string name="meter_link_submit">Vincular medidor</string>
     <string name="meter_link_error_title">No se pudo vincular el medidor</string>
     <string name="meter_link_error_body">Revisa la conexión y vuelve a intentarlo.</string>
-    <string name="monitoring_by_device">Por equipo</string>
-    <string name="monitoring_empty">No hay equipos en el local activo.</string>
     <string name="monitoring_detail_title">Detalle de consumo</string>
-    <string name="monitoring_device_unknown">Equipo no encontrado</string>
-    <string name="monitoring_no_readings">No hay lecturas de consumo para este equipo.</string>
-    <string name="monitoring_history_unavailable">El historial por períodos estará disponible cuando el backend entregue lecturas por equipo.</string>
     <string name="monitoring_meters_title">Medidores del local</string>
     <string name="monitoring_meters_description">Medidores IoT vinculados al local y, opcionalmente, a una zona.</string>
-    <string name="monitoring_site_context">Datos de %1$s</string>
     <string name="monitoring_select_site">Selecciona un local para consultar su monitoreo.</string>
     <string name="monitoring_by_zone">Consumo por zona</string>
     <string name="monitoring_days">%1$d días</string>
@@ -458,7 +446,6 @@
     <string name="dashboard_no_meters_body">Vincula un medidor en Monitoreo para consultar sus lecturas.</string>
     <string name="dashboard_open_monitoring">Ir a Monitoreo</string>
     <string name="value_unavailable">No disponible</string>
-    <string name="action_refresh">Actualizar</string>
 
     <!-- Alerts (Figma M14, M15, M16; web: AlertsView.vue) -->
     <string name="alerts_tab_active">Activas</string>
@@ -637,7 +624,6 @@
     <string name="reports_locked_title">Reportes mensuales</string>
     <string name="reports_locked_body">La generación de reportes en PDF está disponible desde el plan Business.</string>
     <string name="report_preview_title">Vista previa</string>
-    <string name="report_generating">Preparando el reporte…</string>
     <string name="report_saved">PDF guardado en Descargas.</string>
     <string name="report_save_failed">No se pudo guardar el PDF. Inténtalo otra vez.</string>
     <string name="report_share">Compartir</string>
