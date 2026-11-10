@@ -33,9 +33,6 @@ interface EnergyService {
     @PATCH("energy-meters/{meterId}/zone")
     suspend fun assignZone(@Path("meterId") meterId: String, @Body body: JsonObject): EnergyMeterDto
 
-    @PATCH("energy-meters/{meterId}/deactivate")
-    suspend fun deactivateMeter(@Path("meterId") meterId: String)
-
     @DELETE("energy-meters/{meterId}")
     suspend fun deleteMeter(@Path("meterId") meterId: String)
 
